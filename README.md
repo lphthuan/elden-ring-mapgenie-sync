@@ -3,7 +3,7 @@
 [![Python Version](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/Platform-Windows-0078d7.svg)](https://microsoft.com/windows)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/Release-v1.1.0-gold.svg)](https://github.com/lphthuan/elden-ring-mapgenie-sync/releases/latest)
+[![Release](https://img.shields.io/badge/Release-v1.2.0-gold.svg)](https://github.com/lphthuan/elden-ring-mapgenie-sync/releases/latest)
 
 > **Công cụ tự động đọc file save game *Elden Ring* PC (`ER0000.sl2`) và xuất file JSON đồng bộ trực tiếp lên bản đồ tương tác MapGenie (thông qua extension Free Map Genie - FMG).**
 
@@ -25,12 +25,15 @@ Không còn phải ngồi tích tay hàng trăm Điểm ân điển (Grace), Bos
   * ✨ **Phép thuật & Lời nguyện (Sorceries & Incantations)**.
   * 📜 **Vật phẩm chính, Sách nấu ăn & Bản đồ (Key Items, Cookbooks, Maps)**.
   * 🌪️ **Tro tàn chiến tranh & Tro gọi hồn (Ashes of War & Spirit Ashes)**.
+  * 🌿 **Vật liệu nâng cấp & chế tạo (Materials - Mới)**: Đá rèn (Smithing Stone, Somber), Đá cổ đại (Ancient Stone), Hoa hầm mộ (Glovewort), Hoa không hồi sinh (Trina's Lily, Miquella's Lily).
+  * 🧪 **Vật phẩm dùng 1 lần & Runes (Consumables - Mới)**: Rune Arc, Golden Runes nhặt trên xác, Mũi tên đặc thù, Vật phẩm tiêu hao hiếm.
   * 📦 **Quét cả Hòm Đồ (Storage Box)**: Quét cả những món đồ bạn đang cất trong rương tại Grace.
 * 🎯 **Tính năng Nhận diện Nâng cao (Smart Detection Engine)**:
-  * 🎯 **Chế độ Quét Vật Phẩm Độc Nhất (Strict Unique Mode - 100% Chính xác)**: Nhận diện vật phẩm chỉ xuất hiện đúng 1 lần duy nhất trên bản đồ (1,346 vật phẩm tại The Lands Between, 434 vật phẩm tại DLC). Ngăn ngừa hoàn toàn việc tích nhầm các vật phẩm rải rác ở nhiều tọa độ khác nhau (hoa Lily, đá Smithing rơi phổ thông, thức ăn).
-  * 🌐 **Ánh xạ Không gian & Vùng Lân Cận (Spatial Proximity Mapping - Cách 2)**:
+  * 🎯 **Chế độ Quét Vật Phẩm Độc Nhất (Strict Unique Mode - 100% Chính xác)**: Nhận diện vật phẩm chỉ xuất hiện đúng 1 lần duy nhất trên bản đồ (1,346 vật phẩm tại The Lands Between, 434 vật phẩm tại DLC). Ngăn ngừa hoàn toàn việc tích nhầm các vật phẩm rải rác ở nhiều tọa độ khác nhau.
+  * 🌐 **Ánh xạ Không gian & Vùng Lân Cận (Spatial Proximity Mapping)**:
     * 🍷 **Bình Giọt Lệ (Sacred Tears)**: Tự động đánh dấu tại các Nhà Thờ khi Điểm Ân Điển bên trong đã được kích hoạt (khoảng cách < 200m).
     * 🏆 **Vật phẩm Thưởng Sau Khi Hạ Boss**: Tự động đánh dấu Đá Cổ Đại, Hạt Giống Vàng, Bùa Nhớ khi Boss tương ứng bị tiêu diệt.
+    * 🗡️ **NPC Xâm Lăng & Kẻ Địch Tinh Anh**: Tự động đánh dấu Invader bị tiêu diệt (Nerijus, Vyke, Okina, Henricus, v.v.) dựa trên cự ly tọa độ với vật phẩm vũ khí/bùa rơi độc nhất (< 70m).
     * ✨ **Vệt Sáng Quanh Grace**: Tự động đánh dấu các tài nguyên nhặt ngay sát Điểm Ân Điển đã kích hoạt (< 60m) khi người chơi sở hữu vật phẩm trong túi đồ.
 * 🗺️ **Hỗ trợ cả 2 Bản đồ**:
   * **The Lands Between** (Bản đồ game gốc - Map ID `413` - 5,700+ địa điểm).
@@ -96,8 +99,10 @@ python elden_ring_fmg_sync.py --web --port 8088
 | `--user` | MapGenie User ID | `7764114` |
 | `--merge` | File JSON FMG cũ để gộp thêm | Không gộp |
 | `--output` | Đường dẫn file JSON xuất ra | Tự động đặt tên theo Map & User |
+| `--no-materials` | Tắt quét vật liệu (Materials: đá rèn, hoa hầm mộ, thảo mộc hiếm) | Mặc định bật |
+| `--no-consumables` | Tắt quét vật phẩm dùng 1 lần (Consumables: Runes, Rune Arcs, tên) | Mặc định bật |
 | `--no-strict-unique` | Tắt Strict Unique Mode (quét cả item rơi nhiều nơi) | Mặc định bật (chỉ quét item độc nhất) |
-| `--no-spatial` | Tắt Spatial Mapping (Tear nhà thờ, thưởng boss, vùng Grace) | Mặc định bật |
+| `--no-spatial` | Tắt Spatial Mapping (Tear nhà thờ, thưởng boss, vùng Grace, Invader) | Mặc định bật |
 | `--web` | Chạy ở chế độ giao diện Web | Bật nếu không truyền cờ khác |
 | `--port` | Cổng HTTP Server cho giao diện Web | `8088` |
 

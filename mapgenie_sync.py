@@ -25,6 +25,24 @@ def norm_title(s: str) -> str:
 def clean_alnum(s: str) -> str:
     return re.sub(r'[^a-z0-9]', '', s.lower())
 
+# MapGenie 1-time Event Flag Categories
+GRACE_CATS = {5658}
+BOSS_CATS = {5699, 5710, 5711, 5697, 5700}
+WEAPON_CATS = {5688, 5690}
+ARMOR_CATS = {5689}
+TALISMAN_CATS = {5691}
+SPELL_CATS = {5692, 5693}
+KEY_ITEM_CATS = {5673, 5676, 5672, 5674, 5675, 5725, 5726, 6031, 6032, 6033, 6034, 6037, 6038, 6039, 5721, 5728, 11316, 11317}
+ASH_CATS = {5714, 5687}
+MATERIAL_CATS = {5722, 5723, 5685, 6026, 5702, 6035, 6027, 6028, 6029, 5703, 5709}
+CONSUMABLE_CATS = {5681, 5712, 5724, 5682, 5680, 5677, 5678, 5679, 5683, 5684, 5707, 5727, 5686}
+LOCATION_EVENT_CATS = {5667, 6040, 5665, 5664, 5660}
+
+ALL_ITEM_CATS = (
+    WEAPON_CATS | ARMOR_CATS | TALISMAN_CATS | SPELL_CATS |
+    KEY_ITEM_CATS | ASH_CATS | MATERIAL_CATS | CONSUMABLE_CATS | LOCATION_EVENT_CATS
+)
+
 class MapGenieSyncEngine:
     def __init__(self, data_dir: str | None = None):
         if not data_dir:
@@ -91,15 +109,6 @@ class MapGenieSyncEngine:
 
         locations = map_json.get('locations', [])
 
-        boss_cats = {5699, 5710, 5711, 5697, 5700}
-        all_item_cats = {
-            5688, 5689, 5690, 5691, 5692, 5693, 5714, 5687,
-            5676, 5672, 5673, 5674, 5725, 5726, 5677, 5727,
-            6031, 6033, 6034, 6037, 6038, 6039,
-            # Materials, consumables, tears, seeds
-            5685, 6026, 5702, 6035, 6028, 6027, 6029, 5683, 5678, 5681
-        }
-
         graces = {}   # norm_title -> list[loc]
         bosses = {}   # norm_title -> list[loc]
         items = {}    # norm_title -> list[loc]
@@ -108,12 +117,12 @@ class MapGenieSyncEngine:
         for loc in locations:
             cid = loc['category_id']
             t_norm = norm_title(loc['title'])
-            if cid == 5658:
+            if cid in GRACE_CATS:
                 graces.setdefault(t_norm, []).append(loc)
                 graces_list.append(loc)
-            elif cid in boss_cats:
+            elif cid in BOSS_CATS:
                 bosses.setdefault(t_norm, []).append(loc)
-            elif cid in all_item_cats:
+            elif cid in ALL_ITEM_CATS:
                 items.setdefault(t_norm, []).append(loc)
 
         return graces, bosses, items, graces_list
@@ -139,6 +148,8 @@ class MapGenieSyncEngine:
                 'sync_spells': True,
                 'sync_key_items': True,
                 'sync_ashes': True,
+                'sync_materials': True,      # New: Materials (Stones, Gloveworts, rare flora)
+                'sync_consumables': True,    # New: Consumables (Runes, Rune Arcs, Ammunition)
                 'strict_unique': True,       # Feature 1: Only mark items appearing once on this map
                 'spatial_mapping': True,     # Feature 2: Spatial coordinate mapping for non-respawn pickups
                 'include_storage': True
@@ -153,16 +164,19 @@ class MapGenieSyncEngine:
         breakdown = {
             'graces': {'count': 0, 'samples': []},
             'bosses': {'count': 0, 'samples': []},
-            'unique_items': {'count': 0, 'samples': []},
-            'spatial_sacred_tears': {'count': 0, 'samples': []},
-            'spatial_boss_drops': {'count': 0, 'samples': []},
-            'spatial_grace_vicinity': {'count': 0, 'samples': []},
             'weapons': {'count': 0, 'samples': []},
             'armor': {'count': 0, 'samples': []},
             'talismans': {'count': 0, 'samples': []},
             'spells': {'count': 0, 'samples': []},
             'key_items': {'count': 0, 'samples': []},
             'ashes': {'count': 0, 'samples': []},
+            'materials': {'count': 0, 'samples': []},
+            'consumables': {'count': 0, 'samples': []},
+            'unique_items': {'count': 0, 'samples': []},
+            'spatial_sacred_tears': {'count': 0, 'samples': []},
+            'spatial_boss_drops': {'count': 0, 'samples': []},
+            'spatial_grace_vicinity': {'count': 0, 'samples': []},
+            'spatial_invasions': {'count': 0, 'samples': []},
             'existing_merged': 0
         }
 
@@ -220,8 +234,7 @@ class MapGenieSyncEngine:
             common_pool.extend(slot_data.get('storage_common', []))
             key_pool.extend(slot_data.get('storage_key', []))
 
-        # Build map of player items
-        player_items = {} # norm_title -> {'cat': 'weapon'|'armor'|'talisman'|'spell'|'key'|'ash', 'raw_name': str}
+        player_items = {} # norm_title -> raw_name
 
         # Key items
         for item in key_pool:
@@ -229,96 +242,95 @@ class MapGenieSyncEngine:
             clean_id = raw_id & 0x0FFFFFFF
             name = self.names['goods'].get(clean_id) or self.names['goods'].get(raw_id)
             if name:
-                player_items[norm_title(name)] = {'cat': 'key', 'raw_name': name}
+                player_items[norm_title(name)] = name
 
-        # Common items
+        # Common items (weapons, armors, accessories, magic, sword_arts, goods)
         for item in common_pool:
             raw_id = item['id']
             clean_id = raw_id & 0x0FFFFFFF
             w_base = clean_id - (clean_id % 100)
 
-            w_name = self.names['weapons'].get(clean_id) or self.names['weapons'].get(w_base)
-            a_name = self.names['armors'].get(clean_id)
-            t_name = self.names['accessories'].get(clean_id)
-            m_name = self.names['magic'].get(clean_id)
-            g_name = self.names['goods'].get(clean_id)
-            s_name = self.names['sword_arts'].get(clean_id)
+            for key in ('weapons', 'armors', 'accessories', 'magic', 'sword_arts', 'goods'):
+                name = self.names[key].get(clean_id) or self.names[key].get(raw_id)
+                if not name and key == 'weapons':
+                    name = self.names['weapons'].get(w_base)
+                if name:
+                    player_items[norm_title(name)] = name
 
-            if w_name:
-                player_items[norm_title(w_name)] = {'cat': 'weapon', 'raw_name': w_name}
-            elif a_name:
-                player_items[norm_title(a_name)] = {'cat': 'armor', 'raw_name': a_name}
-            elif t_name:
-                player_items[norm_title(t_name)] = {'cat': 'talisman', 'raw_name': t_name}
-            elif m_name:
-                player_items[norm_title(m_name)] = {'cat': 'spell', 'raw_name': m_name}
-            elif s_name or g_name:
-                player_items[norm_title(s_name or g_name)] = {'cat': 'ash', 'raw_name': s_name or g_name}
-
-        # Match player items
+        # Match player items with MapGenie locations
         strict_unique = options.get('strict_unique', True)
 
-        for n_norm, item_info in player_items.items():
-            cat = item_info['cat']
-            raw_name = item_info['raw_name']
-
-            # Check category toggle
-            if cat == 'weapon' and not options.get('sync_weapons', True): continue
-            if cat == 'armor' and not options.get('sync_armor', True): continue
-            if cat == 'talisman' and not options.get('sync_talismans', True): continue
-            if cat == 'spell' and not options.get('sync_spells', True): continue
-            if cat == 'key' and not options.get('sync_key_items', True): continue
-            if cat == 'ash' and not options.get('sync_ashes', True): continue
-
-            locs = items_idx.get(n_norm)
-            if not locs:
+        for n_norm, locs in items_idx.items():
+            if n_norm not in player_items:
                 continue
+            raw_name = player_items[n_norm]
 
             # In Strict Unique Mode: ONLY mark if item appears EXACTLY ONCE on this map!
             if strict_unique and len(locs) > 1:
                 continue
 
             for l in locs:
+                cid = l['category_id']
+                cat_key = None
+                opt_key = None
+
+                if cid in WEAPON_CATS:
+                    cat_key, opt_key = 'weapons', 'sync_weapons'
+                elif cid in ARMOR_CATS:
+                    cat_key, opt_key = 'armor', 'sync_armor'
+                elif cid in TALISMAN_CATS:
+                    cat_key, opt_key = 'talismans', 'sync_talismans'
+                elif cid in SPELL_CATS:
+                    cat_key, opt_key = 'spells', 'sync_spells'
+                elif cid in KEY_ITEM_CATS:
+                    cat_key, opt_key = 'key_items', 'sync_key_items'
+                elif cid in ASH_CATS:
+                    cat_key, opt_key = 'ashes', 'sync_ashes'
+                elif cid in MATERIAL_CATS:
+                    cat_key, opt_key = 'materials', 'sync_materials'
+                elif cid in CONSUMABLE_CATS:
+                    cat_key, opt_key = 'consumables', 'sync_consumables'
+
+                if not cat_key or not options.get(opt_key, True):
+                    continue
+
                 matched_location_ids.add(l['id'])
+                breakdown[cat_key]['count'] += 1
+                if len(breakdown[cat_key]['samples']) < 8:
+                    breakdown[cat_key]['samples'].append(raw_name)
 
-            if len(locs) == 1:
-                breakdown['unique_items']['count'] += 1
-                if len(breakdown['unique_items']['samples']) < 8:
-                    breakdown['unique_items']['samples'].append(raw_name)
-
-            # Also increment specific category
-            cat_map = {
-                'weapon': 'weapons', 'armor': 'armor', 'talisman': 'talismans',
-                'spell': 'spells', 'key': 'key_items', 'ash': 'ashes'
-            }
-            target_key = cat_map.get(cat)
-            if target_key:
-                breakdown[target_key]['count'] += len(locs)
-                if len(breakdown[target_key]['samples']) < 8:
-                    breakdown[target_key]['samples'].append(raw_name)
+                if len(locs) == 1:
+                    breakdown['unique_items']['count'] += 1
+                    if len(breakdown['unique_items']['samples']) < 8:
+                        breakdown['unique_items']['samples'].append(raw_name)
 
         # 4. FEATURE 2 (CÁCH 2): SPATIAL COORDINATE MAPPING (Bản đồ hóa Event Flag theo Tọa độ Không Gian)
-        if options.get('spatial_mapping', True) and graces_list:
+        if options.get('spatial_mapping', True):
             all_locs = self.maps_data.get(map_id, {}).get('locations', [])
 
             # A. Sacred Tears (Cat 5678): Proximity to activated Church Sites of Grace (< 0.003 deg, ~200m)
-            tears = [l for l in all_locs if l.get('category_id') == 5678]
-            for t in tears:
-                if t['id'] in matched_location_ids: continue
-                t_lat, t_lng = float(t['latitude']), float(t['longitude'])
-                closest = min(graces_list, key=lambda g: (float(g['latitude']) - t_lat)**2 + (float(g['longitude']) - t_lng)**2)
-                dist = math.sqrt((float(closest['latitude']) - t_lat)**2 + (float(closest['longitude']) - t_lng)**2)
-                if dist < 0.003 and norm_title(closest['title']) in active_grace_titles:
-                    matched_location_ids.add(t['id'])
-                    breakdown['spatial_sacred_tears']['count'] += 1
-                    if len(breakdown['spatial_sacred_tears']['samples']) < 6:
-                        breakdown['spatial_sacred_tears']['samples'].append(f"{t['title']} ({closest['title']})")
+            if options.get('sync_consumables', True) and graces_list:
+                tears = [l for l in all_locs if l.get('category_id') == 5678]
+                for t in tears:
+                    if t['id'] in matched_location_ids: continue
+                    t_lat, t_lng = float(t['latitude']), float(t['longitude'])
+                    closest = min(graces_list, key=lambda g: (float(g['latitude']) - t_lat)**2 + (float(g['longitude']) - t_lng)**2)
+                    dist = math.sqrt((float(closest['latitude']) - t_lat)**2 + (float(closest['longitude']) - t_lng)**2)
+                    if dist < 0.003 and norm_title(closest['title']) in active_grace_titles:
+                        matched_location_ids.add(t['id'])
+                        breakdown['spatial_sacred_tears']['count'] += 1
+                        if len(breakdown['spatial_sacred_tears']['samples']) < 6:
+                            breakdown['spatial_sacred_tears']['samples'].append(f"{t['title']} ({closest['title']})")
 
-            # B. Boss Drop Materials (Ancient Dragon Stones, Golden Seeds, Memory Stones)
-            # Checked via Boss Defeat flags
-            boss_reward_cats = {5685, 6026, 5683, 5725}
+            # B. Boss Drop Materials & Rewards (Ancient Dragon Stones, Seeds, Memory Stones)
+            boss_reward_cats = {5685, 6026, 5683, 5725, 5722, 5723}
             for l in [l for l in all_locs if l.get('category_id') in boss_reward_cats]:
                 if l['id'] in matched_location_ids: continue
+                cid = l['category_id']
+                if cid in MATERIAL_CATS and not options.get('sync_materials', True): continue
+                if cid in CONSUMABLE_CATS and not options.get('sync_consumables', True): continue
+                if cid in KEY_ITEM_CATS and not options.get('sync_key_items', True): continue
+
                 desc = norm_title(l.get('description', ''))
                 for b_norm in active_boss_titles:
                     if b_norm in desc or any(w in desc for w in b_norm.split() if len(w) > 5):
@@ -328,20 +340,43 @@ class MapGenieSyncEngine:
                             breakdown['spatial_boss_drops']['samples'].append(l['title'])
                         break
 
-            # C. Grace Vicinity World Pickups: Lilies, Stones, Plants right next to an unlocked Grace (< 0.0012 deg, ~60m)
-            material_cats = {5685, 6026, 5702, 6035, 6028, 6027, 6029, 5681}
-            for l in [l for l in all_locs if l.get('category_id') in material_cats]:
-                if l['id'] in matched_location_ids: continue
-                t_norm = norm_title(l['title'])
-                if t_norm in player_items:
-                    l_lat, l_lng = float(l['latitude']), float(l['longitude'])
-                    closest = min(graces_list, key=lambda g: (float(g['latitude']) - l_lat)**2 + (float(g['longitude']) - l_lng)**2)
-                    dist = math.sqrt((float(closest['latitude']) - l_lat)**2 + (float(closest['longitude']) - l_lng)**2)
-                    if dist < 0.0012 and norm_title(closest['title']) in active_grace_titles:
-                        matched_location_ids.add(l['id'])
-                        breakdown['spatial_grace_vicinity']['count'] += 1
-                        if len(breakdown['spatial_grace_vicinity']['samples']) < 6:
-                            breakdown['spatial_grace_vicinity']['samples'].append(l['title'])
+            # C. Grace Vicinity World Pickups: Materials & Consumables (< 0.0012 deg, ~60m)
+            if graces_list:
+                vicinity_cats = set()
+                if options.get('sync_materials', True):
+                    vicinity_cats.update(MATERIAL_CATS)
+                if options.get('sync_consumables', True):
+                    vicinity_cats.update(CONSUMABLE_CATS)
+
+                for l in [l for l in all_locs if l.get('category_id') in vicinity_cats]:
+                    if l['id'] in matched_location_ids: continue
+                    t_norm = norm_title(l['title'])
+                    if t_norm in player_items:
+                        l_lat, l_lng = float(l['latitude']), float(l['longitude'])
+                        closest = min(graces_list, key=lambda g: (float(g['latitude']) - l_lat)**2 + (float(g['longitude']) - l_lng)**2)
+                        dist = math.sqrt((float(closest['latitude']) - l_lat)**2 + (float(closest['longitude']) - l_lng)**2)
+                        if dist < 0.0012 and norm_title(closest['title']) in active_grace_titles:
+                            matched_location_ids.add(l['id'])
+                            breakdown['spatial_grace_vicinity']['count'] += 1
+                            if len(breakdown['spatial_grace_vicinity']['samples']) < 6:
+                                breakdown['spatial_grace_vicinity']['samples'].append(l['title'])
+
+            # D. Spatial Invasions & Unique Enemy Drops: (< 0.0015 deg, ~70m)
+            if options.get('sync_bosses', True):
+                invader_cats = {5697, 5700}
+                invaders = [l for l in all_locs if l.get('category_id') in invader_cats and l['id'] not in matched_location_ids]
+                matched_items = [l for l in all_locs if l['id'] in matched_location_ids and l.get('category_id') in (WEAPON_CATS | TALISMAN_CATS | SPELL_CATS | ASH_CATS | KEY_ITEM_CATS)]
+                for inv in invaders:
+                    i_lat, i_lng = float(inv['latitude']), float(inv['longitude'])
+                    for itm in matched_items:
+                        dist = math.sqrt((float(itm['latitude']) - i_lat)**2 + (float(itm['longitude']) - i_lng)**2)
+                        if dist < 0.0015:
+                            matched_location_ids.add(inv['id'])
+                            breakdown['spatial_invasions']['count'] += 1
+                            breakdown['bosses']['count'] += 1
+                            if len(breakdown['spatial_invasions']['samples']) < 6:
+                                breakdown['spatial_invasions']['samples'].append(f"{inv['title']} (from {itm['title']})")
+                            break
 
         # 5. MERGE WITH EXISTING FMG EXPORT
         if existing_fmg_data:

@@ -28,6 +28,8 @@ def main():
     parser.add_argument("--user", type=int, default=7764114, help="User ID MapGenie (mặc định 7764114)")
     parser.add_argument("--merge", type=str, default=None, help="File FMG JSON cũ để gộp dữ liệu")
     parser.add_argument("--output", type=str, default=None, help="File JSON xuất ra")
+    parser.add_argument("--no-materials", action="store_true", help="Vô hiệu hóa quét vật liệu (Materials: đá rèn, hoa hầm mộ, thảo mộc hiếm)")
+    parser.add_argument("--no-consumables", action="store_true", help="Vô hiệu hóa quét vật phẩm dùng một lần (Consumables: Runes, Rune Arcs, Ammunition)")
     parser.add_argument("--no-strict-unique", action="store_true", help="Vô hiệu hóa Strict Unique Mode (quét cả vật phẩm rơi ở nhiều nơi)")
     parser.add_argument("--no-spatial", action="store_true", help="Vô hiệu hóa Spatial Mapping (không quét Sacred Tears theo Church Grace, Boss drop và Grace pickups)")
     parser.add_argument("--web", action="store_true", help="Chạy giao diện Web (mặc định nếu không truyền tham số)")
@@ -76,6 +78,8 @@ def main():
         'sync_spells': True,
         'sync_key_items': True,
         'sync_ashes': True,
+        'sync_materials': not args.no_materials,
+        'sync_consumables': not args.no_consumables,
         'strict_unique': not args.no_strict_unique,
         'spatial_mapping': not args.no_spatial,
         'include_storage': True

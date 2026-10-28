@@ -793,6 +793,12 @@
             <label class="toggle-label">
               <input type="checkbox" id="sync_ashes" checked> 🌪️ Tro Tàn Chiến Tranh
             </label>
+            <label class="toggle-label">
+              <input type="checkbox" id="sync_materials" checked> 🌿 Vật Liệu (Đá rèn, Hoa mộ...)
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox" id="sync_consumables" checked> 🧪 Vật Phẩm Dùng 1 Lần & Runes
+            </label>
             <label class="toggle-label" style="grid-column: span 2;">
               <input type="checkbox" id="include_storage" checked> 📦 Quét cả vật phẩm trong Hòm Đồ (Storage Box)
             </label>
@@ -1033,6 +1039,8 @@
         sync_spells: document.getElementById('sync_spells').checked,
         sync_key_items: document.getElementById('sync_key_items').checked,
         sync_ashes: document.getElementById('sync_ashes').checked,
+        sync_materials: document.getElementById('sync_materials').checked,
+        sync_consumables: document.getElementById('sync_consumables').checked,
         include_storage: document.getElementById('include_storage').checked,
         strict_unique: document.getElementById('strict_unique').checked,
         spatial_mapping: document.getElementById('spatial_mapping').checked
@@ -1079,12 +1087,15 @@
         spatial_sacred_tears: '🍷 Bình Giọt Lệ (Sacred Tear)',
         spatial_boss_drops: '🏆 Thưởng Diệt Boss',
         spatial_grace_vicinity: '✨ Vệt Sáng Quanh Grace',
+        spatial_invasions: '🗡️ NPC Xâm Lăng & Tinh Anh',
         weapons: '🗡️ Vũ Khí & Khiên',
         armor: '🛡️ Áo Giáp & Nón',
         talismans: '💍 Bùa Hộ Mệnh',
         spells: '✨ Phép & Lời Nguyện',
         key_items: '📜 Sách & Bản Đồ',
-        ashes: '🌪️ Tro Tàn Chiến Tranh'
+        ashes: '🌪️ Tro Tàn Chiến Tranh',
+        materials: '🌿 Vật Liệu Nâng Cấp & Chế Tạo',
+        consumables: '🧪 Vật Phẩm Dùng 1 Lần & Runes'
       };
 
       for (const [key, label] of Object.entries(labels)) {
