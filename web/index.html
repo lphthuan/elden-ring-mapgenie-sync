@@ -433,6 +433,88 @@
       height: 16px;
     }
 
+    /* ADVANCED FEATURES (SMART DETECTION) */
+    .advanced-features-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px dashed rgba(212, 175, 55, 0.25);
+    }
+
+    .feature-card {
+      display: flex;
+      gap: 14px;
+      background: rgba(20, 28, 42, 0.6);
+      border: 1px solid rgba(212, 175, 55, 0.25);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      cursor: pointer;
+      transition: var(--transition);
+      align-items: flex-start;
+    }
+
+    .feature-card:hover {
+      border-color: var(--gold-primary);
+      background: rgba(212, 175, 55, 0.05);
+    }
+
+    .feature-card input[type="checkbox"] {
+      accent-color: var(--gold-primary);
+      width: 18px;
+      height: 18px;
+      margin-top: 3px;
+      cursor: pointer;
+    }
+
+    .feature-content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+    }
+
+    .feature-header-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .feature-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--gold-light);
+    }
+
+    .feature-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-gold {
+      background: rgba(212, 175, 55, 0.15);
+      color: var(--gold-primary);
+      border: 1px solid rgba(212, 175, 55, 0.4);
+    }
+
+    .badge-cyan {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent-blue);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+
+    .feature-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
     /* STEP 4: USER ID & MERGE */
     .fmg-settings {
       display: flex;
@@ -512,24 +594,35 @@
 
     .breakdown-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
       gap: 12px;
     }
 
     .breakdown-card {
       background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: var(--radius-sm);
       padding: 12px 14px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .breakdown-card:hover {
+      border-color: rgba(212, 175, 55, 0.3);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .breakdown-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
     .breakdown-card-title {
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
+      font-size: 12px;
+      color: var(--text-main);
       font-weight: 600;
     }
 
@@ -537,6 +630,25 @@
       font-size: 20px;
       font-weight: 700;
       color: var(--gold-primary);
+    }
+
+    .breakdown-samples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    .sample-tag {
+      font-size: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+      padding: 1px 6px;
+      border-radius: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 190px;
     }
 
     /* INSTRUCTIONS ACCORDION */
@@ -686,6 +798,40 @@
             </label>
           </div>
         </div>
+      </div>
+
+      <!-- ADVANCED DETECTION FEATURES (SMART ENGINE) -->
+      <div class="advanced-features-section">
+        <label style="font-size: 13px; font-weight: 600; color: var(--gold-primary);">⚡ Tính Năng Nhận Diện Nâng Cao (Smart Detection):</label>
+        
+        <label class="feature-card">
+          <input type="checkbox" id="strict_unique" checked>
+          <div class="feature-content">
+            <div class="feature-header-line">
+              <span class="feature-title">🎯 Tính năng 1: Chỉ Quét Vật Phẩm Độc Nhất (Strict Unique Mode)</span>
+              <span class="feature-badge badge-gold">100% Chính Xác</span>
+            </div>
+            <div class="feature-desc">
+              Chỉ tự động đánh dấu khi vật phẩm xuất hiện đúng 1 lần duy nhất trên bản đồ. Giúp loại trừ hoàn toàn việc đánh dấu nhầm các vật phẩm rải rác ở nhiều tọa độ khác nhau (như hoa Trina/Miquella Lily, đá Smithing phổ thông, thức ăn rơi nhiều nơi).
+            </div>
+          </div>
+        </label>
+
+        <label class="feature-card">
+          <input type="checkbox" id="spatial_mapping" checked>
+          <div class="feature-content">
+            <div class="feature-header-line">
+              <span class="feature-title">🌐 Tính năng 2: Ánh Xạ Không Gian & Vùng Lân Cận (Spatial Mapping - Cách 2)</span>
+              <span class="feature-badge badge-cyan">Tọa độ Thông Minh</span>
+            </div>
+            <div class="feature-desc">
+              Tự động liên kết các vật phẩm nhặt 1 lần ngoài thế giới theo dữ liệu vị trí:
+              <br>• <strong>Bình Giọt Lệ (Sacred Tears)</strong>: Đánh dấu tại các Nhà Thờ có Điểm Ân Điển đã kích hoạt (&lt; 200m).
+              <br>• <strong>Thưởng Diệt Boss</strong>: Đánh dấu Đá Cổ Đại, Hạt Giống Vàng, Bùa Nhớ rơi từ Boss thế giới đã tiêu diệt.
+              <br>• <strong>Vệt Sáng Quanh Grace</strong>: Đánh dấu vật phẩm rải rác (Lily, Smithing Stone) nhặt ngay sát Điểm Ân Điển đã mở (&lt; 60m).
+            </div>
+          </div>
+        </label>
       </div>
 
       <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
@@ -887,7 +1033,9 @@
         sync_spells: document.getElementById('sync_spells').checked,
         sync_key_items: document.getElementById('sync_key_items').checked,
         sync_ashes: document.getElementById('sync_ashes').checked,
-        include_storage: document.getElementById('include_storage').checked
+        include_storage: document.getElementById('include_storage').checked,
+        strict_unique: document.getElementById('strict_unique').checked,
+        spatial_mapping: document.getElementById('spatial_mapping').checked
       };
 
       const userId = parseInt(document.getElementById('userIdInput').value) || 7764114;
@@ -927,12 +1075,16 @@
       const labels = {
         graces: '🌟 Điểm Ân Điển',
         bosses: '⚔️ Trùm & Kẻ Địch',
+        unique_items: '🎯 Vật Phẩm Độc Nhất (100%)',
+        spatial_sacred_tears: '🍷 Bình Giọt Lệ (Sacred Tear)',
+        spatial_boss_drops: '🏆 Thưởng Diệt Boss',
+        spatial_grace_vicinity: '✨ Vệt Sáng Quanh Grace',
         weapons: '🗡️ Vũ Khí & Khiên',
         armor: '🛡️ Áo Giáp & Nón',
         talismans: '💍 Bùa Hộ Mệnh',
-        spells: '✨ Phép Thuật',
+        spells: '✨ Phép & Lời Nguyện',
         key_items: '📜 Sách & Bản Đồ',
-        ashes: '🌪️ Tro Chiến Tranh'
+        ashes: '🌪️ Tro Tàn Chiến Tranh'
       };
 
       for (const [key, label] of Object.entries(labels)) {
@@ -940,9 +1092,22 @@
         if (item && item.count > 0) {
           const card = document.createElement('div');
           card.className = 'breakdown-card';
+
+          let samplesHtml = '';
+          if (item.samples && item.samples.length > 0) {
+            samplesHtml = `
+              <div class="breakdown-samples">
+                ${item.samples.slice(0, 3).map(s => `<span class="sample-tag" title="${s}">${s}</span>`).join('')}
+              </div>
+            `;
+          }
+
           card.innerHTML = `
-            <span class="breakdown-card-title">${label}</span>
-            <span class="breakdown-card-num">${item.count}</span>
+            <div class="breakdown-top">
+              <span class="breakdown-card-title">${label}</span>
+              <span class="breakdown-card-num">${item.count}</span>
+            </div>
+            ${samplesHtml}
           `;
           grid.appendChild(card);
         }

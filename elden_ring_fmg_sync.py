@@ -28,6 +28,8 @@ def main():
     parser.add_argument("--user", type=int, default=7764114, help="User ID MapGenie (mặc định 7764114)")
     parser.add_argument("--merge", type=str, default=None, help="File FMG JSON cũ để gộp dữ liệu")
     parser.add_argument("--output", type=str, default=None, help="File JSON xuất ra")
+    parser.add_argument("--no-strict-unique", action="store_true", help="Vô hiệu hóa Strict Unique Mode (quét cả vật phẩm rơi ở nhiều nơi)")
+    parser.add_argument("--no-spatial", action="store_true", help="Vô hiệu hóa Spatial Mapping (không quét Sacred Tears theo Church Grace, Boss drop và Grace pickups)")
     parser.add_argument("--web", action="store_true", help="Chạy giao diện Web (mặc định nếu không truyền tham số)")
     parser.add_argument("--port", type=int, default=8088, help="Cổng Web server (mặc định 8088)")
 
@@ -65,10 +67,25 @@ def main():
         with open(args.merge, 'r', encoding='utf-8') as f:
             existing_fmg = json.load(f)
 
+    options = {
+        'sync_graces': True,
+        'sync_bosses': True,
+        'sync_weapons': True,
+        'sync_armor': True,
+        'sync_talismans': True,
+        'sync_spells': True,
+        'sync_key_items': True,
+        'sync_ashes': True,
+        'strict_unique': not args.no_strict_unique,
+        'spatial_mapping': not args.no_spatial,
+        'include_storage': True
+    }
+
     res = engine.sync_slot(
         slot_data,
         map_id=args.map,
         user_id=args.user,
+        options=options,
         existing_fmg_data=existing_fmg
     )
 
