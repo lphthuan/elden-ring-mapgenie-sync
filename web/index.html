@@ -840,6 +840,47 @@
         </label>
       </div>
 
+      <!-- SMART MERGE WITH EXISTING FMG FILE -->
+      <div class="advanced-features-section" style="border-color: rgba(0, 201, 167, 0.4); background: rgba(0, 201, 167, 0.04);">
+        <label style="font-size: 13px; font-weight: 600; color: var(--cyan); display: flex; align-items: center; justify-content: space-between;">
+          <span>🔄 Kết Hợp Với File FMG Cũ (Smart Merge & Override):</span>
+          <span class="feature-badge badge-cyan" id="mergeStatusBadge">Tùy Chọn</span>
+        </label>
+        
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div class="fmg-drop-area" id="fmgDropArea" style="border: 2px dashed rgba(0, 201, 167, 0.4); border-radius: 8px; padding: 14px 18px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
+            <input type="file" id="fmgFileInput" accept=".json" style="display: none;">
+            <div id="fmgDropText" style="font-size: 13px; color: var(--text-muted);">
+              📂 Kéo thả hoặc <span style="color: var(--cyan); text-decoration: underline; font-weight: 600;">nhấp chọn file FMG JSON cũ</span> (.json)
+            </div>
+            <div id="fmgLoadedBadge" style="display: none; margin-top: 6px; font-size: 12px; color: var(--cyan); font-weight: 600;"></div>
+          </div>
+
+          <div id="mergeModeSelectArea" style="display: none; flex-direction: column; gap: 8px; background: rgba(0,0,0,0.3); padding: 12px 14px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
+            <label style="font-size: 12px; font-weight: 600; color: var(--gold-light);">Phương thức kết hợp dữ liệu:</label>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <label style="font-size: 12px; display: flex; align-items: flex-start; gap: 8px; cursor: pointer; color: var(--text-main);">
+                <input type="radio" name="mergeModeRadio" value="additive" checked style="margin-top: 2px;">
+                <div>
+                  <strong>🌟 Gộp Bổ Sung (Additive Union - Khuyên dùng)</strong>:
+                  <div style="color: var(--text-muted); font-size: 11px;">Giữ 100% các điểm thủ công cũ (Landmark, ghi chú, thảo mộc, bọ, v.v.) + Bổ sung toàn bộ điểm mới từ Save Game.</div>
+                </div>
+              </label>
+              <label style="font-size: 12px; display: flex; align-items: flex-start; gap: 8px; cursor: pointer; color: var(--text-main);">
+                <input type="radio" name="mergeModeRadio" value="override" style="margin-top: 2px;">
+                <div>
+                  <strong>🎯 Ghi Đè Độc Nhất (Strict 100% Override)</strong>:
+                  <div style="color: var(--text-muted); font-size: 11px;">Giữ điểm thủ công tỉ mỉ, nhưng với các mục độc nhất (Điểm ân điển Grace, Trùm Boss) sẽ ghi đè chuẩn xác theo tiến trình thực tế của file save.</div>
+                </div>
+              </label>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnRemoveFmgMerge" style="align-self: flex-start; margin-top: 4px; font-size: 11px;">
+              ❌ Hủy gộp file này
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
         <button class="btn btn-gold btn-lg" id="btnExecuteSync">
           ⚡ Bắt Đầu Quét & Tạo File FMG
@@ -885,6 +926,7 @@
     let selectedSlotIndex = 0;
     let selectedMapId = 413;
     let loadedProfiles = [];
+    let loadedExistingFmgData = null;
     let currentFmgJson = null;
 
     const toastEl = document.getElementById('toast');
@@ -1027,9 +1069,107 @@
       });
     });
 
+    // 5b. Smart Merge FMG Input
+    const fmgDropArea = document.getElementById('fmgDropArea');
+    const fmgFileInput = document.getElementById('fmgFileInput');
+    const fmgDropText = document.getElementById('fmgDropText');
+    const fmgLoadedBadge = document.getElementById('fmgLoadedBadge');
+    const mergeModeSelectArea = document.getElementById('mergeModeSelectArea');
+    const mergeStatusBadge = document.getElementById('mergeStatusBadge');
+    const btnRemoveFmgMerge = document.getElementById('btnRemoveFmgMerge');
+
+    fmgDropArea.addEventListener('click', (e) => {
+      if (e.target.closest('#btnRemoveFmgMerge') || e.target.closest('input')) return;
+      fmgFileInput.click();
+    });
+
+    fmgDropArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      fmgDropArea.style.borderColor = 'var(--cyan)';
+      fmgDropArea.style.background = 'rgba(0, 201, 167, 0.12)';
+    });
+
+    fmgDropArea.addEventListener('dragleave', () => {
+      fmgDropArea.style.borderColor = 'rgba(0, 201, 167, 0.4)';
+      fmgDropArea.style.background = 'rgba(0, 201, 167, 0.04)';
+    });
+
+    fmgDropArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      fmgDropArea.style.borderColor = 'rgba(0, 201, 167, 0.4)';
+      fmgDropArea.style.background = 'rgba(0, 201, 167, 0.04)';
+      if (e.dataTransfer.files.length > 0) {
+        handleFmgMergeFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    fmgFileInput.addEventListener('change', () => {
+      if (fmgFileInput.files.length > 0) {
+        handleFmgMergeFile(fmgFileInput.files[0]);
+      }
+    });
+
+    function handleFmgMergeFile(file) {
+      if (!file.name.endsWith('.json')) {
+        showToast('Vui lòng chọn file .json của extension FMG!');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (!parsed || !parsed.data || !Array.isArray(parsed.data.locationIds)) {
+            throw new Error('File JSON không đúng cấu trúc FMG (cần version 2 và data.locationIds)!');
+          }
+          loadedExistingFmgData = parsed;
+          const locCount = parsed.data.locationIds.length;
+          fmgDropText.innerHTML = `✅ Đã nạp file cũ: <strong>${file.name}</strong>`;
+          fmgLoadedBadge.style.display = 'block';
+          fmgLoadedBadge.textContent = `📁 Tìm thấy ${locCount} điểm đã đánh dấu trong file cũ.`;
+          mergeModeSelectArea.style.display = 'flex';
+          mergeStatusBadge.textContent = `Đã nạp (${locCount} điểm)`;
+          mergeStatusBadge.className = 'feature-badge badge-gold';
+
+          // Auto-fill userId and mapId if present
+          if (parsed.userId) {
+            document.getElementById('userIdInput').value = parsed.userId;
+          }
+          if (parsed.mapId && (parsed.mapId === 413 || parsed.mapId === 638)) {
+            selectedMapId = parsed.mapId;
+            document.querySelectorAll('.map-btn').forEach(b => {
+              if (parseInt(b.dataset.map) === selectedMapId) {
+                b.classList.add('selected');
+              } else {
+                b.classList.remove('selected');
+              }
+            });
+          }
+
+          showToast(`Đã nạp file FMG cũ thành công (${locCount} vị trí)!`);
+        } catch (err) {
+          showToast('Lỗi đọc file: ' + err.message);
+        }
+      };
+      reader.readAsText(file, 'utf-8');
+    }
+
+    btnRemoveFmgMerge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      loadedExistingFmgData = null;
+      fmgFileInput.value = '';
+      fmgDropText.innerHTML = `📂 Kéo thả hoặc <span style="color: var(--cyan); text-decoration: underline; font-weight: 600;">nhấp chọn file FMG JSON cũ</span> (.json)`;
+      fmgLoadedBadge.style.display = 'none';
+      fmgLoadedBadge.textContent = '';
+      mergeModeSelectArea.style.display = 'none';
+      mergeStatusBadge.textContent = 'Tùy Chọn';
+      mergeStatusBadge.className = 'feature-badge badge-cyan';
+      showToast('Đã hủy kết hợp file FMG cũ.');
+    });
+
     // 6. Execute Sync
     document.getElementById('btnExecuteSync').addEventListener('click', async () => {
       showToast('Đang phân tích và đối soát dữ liệu...');
+      const mergeModeRadio = document.querySelector('input[name="mergeModeRadio"]:checked');
       const options = {
         sync_graces: document.getElementById('sync_graces').checked,
         sync_bosses: document.getElementById('sync_bosses').checked,
@@ -1043,21 +1183,27 @@
         sync_consumables: document.getElementById('sync_consumables').checked,
         include_storage: document.getElementById('include_storage').checked,
         strict_unique: document.getElementById('strict_unique').checked,
-        spatial_mapping: document.getElementById('spatial_mapping').checked
+        spatial_mapping: document.getElementById('spatial_mapping').checked,
+        merge_mode: mergeModeRadio ? mergeModeRadio.value : 'additive'
       };
 
       const userId = parseInt(document.getElementById('userIdInput').value) || 7764114;
 
       try {
+        const payload = {
+          slot_index: selectedSlotIndex,
+          map_id: selectedMapId,
+          user_id: userId,
+          options: options
+        };
+        if (loadedExistingFmgData) {
+          payload.existing_fmg_data = loadedExistingFmgData;
+        }
+
         const res = await fetch('/api/sync', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            slot_index: selectedSlotIndex,
-            map_id: selectedMapId,
-            user_id: userId,
-            options: options
-          })
+          body: JSON.stringify(payload)
         });
         const data = await res.json();
         if (data.error) throw new Error(data.error);
@@ -1074,13 +1220,18 @@
       const section = document.getElementById('resultsSection');
       section.style.display = 'flex';
       document.getElementById('totalLocationsNum').textContent = data.total_locations_found;
-      document.getElementById('resultCharSummary').textContent = 
-        `Nhân vật: ${data.character_name} (Level ${data.level}) • Bản đồ: ${data.map_name}`;
+      
+      let summaryText = `Nhân vật: ${data.character_name} (Level ${data.level}) • Bản đồ: ${data.map_name}`;
+      if (data.breakdown.existing_merged && data.breakdown.existing_merged.count > 0) {
+        summaryText += ` • Đã gộp thành công với file FMG cũ (${data.breakdown.existing_merged.count} vị trí cũ)`;
+      }
+      document.getElementById('resultCharSummary').textContent = summaryText;
 
       const grid = document.getElementById('breakdownGrid');
       grid.innerHTML = '';
 
       const labels = {
+        existing_merged: '📁 File FMG Cũ (Đã Gộp)',
         graces: '🌟 Điểm Ân Điển',
         bosses: '⚔️ Trùm & Kẻ Địch',
         unique_items: '🎯 Vật Phẩm Độc Nhất (100%)',

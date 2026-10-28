@@ -378,11 +378,90 @@ class MapGenieSyncEngine:
                                 breakdown['spatial_invasions']['samples'].append(f"{inv['title']} (from {itm['title']})")
                             break
 
-        # 5. MERGE WITH EXISTING FMG EXPORT
+            # E. Dungeons with Unlocked Entrance Grace (< 0.002 deg, ~100m)
+            active_grace_locs = [l for l in all_locs if l.get('category_id') == 5658 and norm_title(l['title']) in active_grace_titles]
+            for d in [l for l in all_locs if l.get('category_id') == 5655 and l['id'] not in matched_location_ids]:
+                d_lat, d_lng = float(d['latitude']), float(d['longitude'])
+                for g in active_grace_locs:
+                    dist = math.sqrt((float(g['latitude']) - d_lat)**2 + (float(g['longitude']) - d_lng)**2)
+                    if dist < 0.002:
+                        matched_location_ids.add(d['id'])
+                        breakdown['graces']['count'] += 1
+                        break
+
+            # F. Evergaols with Defeated Boss (< 0.0012 deg, ~60m)
+            if options.get('sync_bosses', True):
+                active_boss_locs = [l for l in all_locs if l.get('category_id') in BOSS_CATS and norm_title(l['title']) in active_boss_titles]
+                for eg in [l for l in all_locs if l.get('category_id') == 5660 and l['id'] not in matched_location_ids]:
+                    e_lat, e_lng = float(eg['latitude']), float(eg['longitude'])
+                    for b in active_boss_locs:
+                        dist = math.sqrt((float(b['latitude']) - e_lat)**2 + (float(b['longitude']) - e_lng)**2)
+                        if dist < 0.0012:
+                            matched_location_ids.add(eg['id'])
+                            breakdown['bosses']['count'] += 1
+                            break
+
+            # G. Imp Seal Statues Opened (proximity to cleared items/graces < 0.0008 deg, ~40m)
+            locs_by_id = {l['id']: l for l in all_locs}
+            matched_current = [locs_by_id[mid] for mid in matched_location_ids if mid in locs_by_id]
+            for imp in [l for l in all_locs if l.get('category_id') == 5667 and l['id'] not in matched_location_ids]:
+                i_lat, i_lng = float(imp['latitude']), float(imp['longitude'])
+                for ml in matched_current:
+                    dist = math.sqrt((float(ml['latitude']) - i_lat)**2 + (float(ml['longitude']) - i_lng)**2)
+                    if dist < 0.0008:
+                        matched_location_ids.add(imp['id'])
+                        breakdown['key_items']['count'] += 1
+                        break
+
+            # H. Multi-occurrence Keys, Pots, Bottles & Equipment in Grace Vicinity (< 0.0015 deg, ~75m)
+            multi_vicinity_cats = (WEAPON_CATS | KEY_ITEM_CATS | TALISMAN_CATS | ASH_CATS)
+            for l in [l for l in all_locs if l.get('category_id') in multi_vicinity_cats and l['id'] not in matched_location_ids]:
+                t_norm = norm_title(l['title'])
+                if t_norm in player_items:
+                    l_lat, l_lng = float(l['latitude']), float(l['longitude'])
+                    for g in active_grace_locs:
+                        dist = math.sqrt((float(g['latitude']) - l_lat)**2 + (float(g['longitude']) - l_lng)**2)
+                        if dist < 0.0015:
+                            matched_location_ids.add(l['id'])
+                            breakdown['unique_items']['count'] += 1
+                            break
+
+            # I. Margit's Talisman Pouch (166509) if Margit is defeated
+            if is_flag_active(10000850) and 166509 in locs_by_id:
+                matched_location_ids.add(166509)
+                breakdown['talismans']['count'] += 1
+
+        # 5. SMART MERGE WITH EXISTING FMG EXPORT
         if existing_fmg_data:
-            existing_locs = existing_fmg_data.get('data', {}).get('locationIds', [])
-            matched_location_ids.update(existing_locs)
-            breakdown['existing_merged'] = len(existing_locs)
+            existing_locs = set(existing_fmg_data.get('data', {}).get('locationIds', []))
+            merge_mode = options.get('merge_mode', 'additive') # 'additive' or 'override'
+
+            if merge_mode == 'override':
+                # Overwrite 100% verified unique categories (Graces & Bosses) with current save reality
+                all_locs_dict = {l['id']: l for l in self.maps_data.get(map_id, {}).get('locations', [])}
+                verified_strict_cats = GRACE_CATS | BOSS_CATS
+
+                kept_existing = set()
+                for lid in existing_locs:
+                    l = all_locs_dict.get(lid)
+                    if l and l.get('category_id') in verified_strict_cats:
+                        if lid in matched_location_ids:
+                            kept_existing.add(lid)
+                    else:
+                        kept_existing.add(lid)
+
+                matched_location_ids.update(kept_existing)
+                breakdown['existing_merged'] = {
+                    'count': len(kept_existing),
+                    'samples': [f"Giữ {len(kept_existing)} điểm từ file cũ (chế độ ghi đè {merge_mode})"]
+                }
+            else:
+                # Additive: preserve all old manual markings + add all newly detected save locations
+                matched_location_ids.update(existing_locs)
+                breakdown['existing_merged'] = {
+                    'count': len(existing_locs),
+                    'samples': [f"Gộp {len(existing_locs)} điểm từ file cũ (chế độ gộp bổ sung)"]
+                }
 
         # Build final FMG JSON payload
         sorted_locations = sorted(list(matched_location_ids))
