@@ -1,185 +1,76 @@
-# Elden Ring ➔ MapGenie Sync Tool ⚔️
+# HƯỚNG DẪN SỬ DỤNG CÔNG CỤ ĐỒNG BỘ ELDEN RING ➔ MAPGENIE (FMG)
 
-[![Python Version](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![Platform](https://img.shields.io/badge/Platform-Windows-0078d7.svg)](https://microsoft.com/windows)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/Release-v1.2.0-gold.svg)](https://github.com/lphthuan/elden-ring-mapgenie-sync/releases/latest)
-
-> **Công cụ tự động đọc file save game *Elden Ring* PC (`ER0000.sl2`) và xuất file JSON đồng bộ trực tiếp lên bản đồ tương tác MapGenie (thông qua extension Free Map Genie - FMG).**
-
-Không còn phải ngồi tích tay hàng trăm Điểm ân điển (Grace), Boss, Vũ khí, Bùa hộ mệnh hay Sách nấu ăn trên bản đồ! Chỉ với **1 cú nhấp chuột**, toàn bộ hành trình của nhân vật sẽ được đánh dấu đầy đủ lên bản đồ MapGenie.
+Công cụ độc lập giúp tự động giải mã file save của Elden Ring PC (`ER0000.sl2`), nhận diện toàn bộ các vị trí đã khám phá và xuất ra file JSON chuẩn để **Import** trực tiếp vào extension **Free Map Genie (FMG)** trên Chrome.
 
 ---
 
-## ✨ TÍNH NĂNG NỔI BẬT
+## 🌟 CÁC TÍNH NĂNG CHÍNH
 
-* ⚡ **Không cần cài đặt phức tạp (Zero-Dependency)**: Chạy hoàn toàn bằng Python có sẵn trên máy, không cần chạy `pip install` bất kỳ thư viện ngoài nào.
-* 🔍 **Tự động nhận diện Save Steam**: Tự động phát hiện vị trí file save `%APPDATA%\EldenRing\<SteamID>\ER0000.sl2` của bạn mà không cần đi tìm thủ công. Hỗ trợ cả kéo thả (Drag & Drop) file save tùy ý.
-* 👤 **Hỗ trợ đầy đủ 10 Slot nhân vật**: Hiển thị chi tiết Tên, Cấp độ (Level), Thời gian chơi (Playtime) và Số lần tử trận (Deaths).
-* 🎯 **Độ chính xác cực cao (99%+)**:
-  * 🌟 **Điểm Ân Điển (Sites of Grace)**: Nhận diện chính xác 100% các grace đã kích hoạt thông qua Event Flags.
-  * ⚔️ **Trùm & Kẻ địch lớn (Bosses)**: Tự động đối soát cờ tiêu diệt (defeat flags) của hơn 200 boss lớn nhỏ.
-  * 🗡️ **Vũ khí & Khiên (Weapons & Shields)**: Tra cứu toàn bộ bảng ID vật phẩm trong túi và trang bị.
-  * 🛡️ **Áo giáp & Nón (Armor Sets)**: Tự động đánh dấu vị trí các bộ giáp đã nhặt.
-  * 💍 **Bùa Hộ Mệnh (Talismans)**: Quét toàn bộ bùa hộ mệnh đang sở hữu.
-  * ✨ **Phép thuật & Lời nguyện (Sorceries & Incantations)**.
-  * 📜 **Vật phẩm chính, Sách nấu ăn & Bản đồ (Key Items, Cookbooks, Maps)**.
-  * 🌪️ **Tro tàn chiến tranh & Tro gọi hồn (Ashes of War & Spirit Ashes)**.
-  * 🌿 **Vật liệu nâng cấp & chế tạo (Materials - Mới)**: Đá rèn (Smithing Stone, Somber), Đá cổ đại (Ancient Stone), Hoa hầm mộ (Glovewort), Hoa không hồi sinh (Trina's Lily, Miquella's Lily).
-  * 🧪 **Vật phẩm dùng 1 lần & Runes (Consumables - Mới)**: Rune Arc, Golden Runes nhặt trên xác, Mũi tên đặc thù, Vật phẩm tiêu hao hiếm.
-  * 📦 **Quét cả Hòm Đồ (Storage Box)**: Quét cả những món đồ bạn đang cất trong rương tại Grace.
-* 🎯 **Tính năng Nhận diện Nâng cao (Smart Detection Engine)**:
-  * 🎯 **Chế độ Quét Vật Phẩm Độc Nhất (Strict Unique Mode - 100% Chính xác)**: Nhận diện vật phẩm chỉ xuất hiện đúng 1 lần duy nhất trên bản đồ (1,346 vật phẩm tại The Lands Between, 434 vật phẩm tại DLC). Ngăn ngừa hoàn toàn việc tích nhầm các vật phẩm rải rác ở nhiều tọa độ khác nhau.
-  * 🌐 **Ánh xạ Không gian & Vùng Lân Cận (Spatial Proximity Mapping)**:
-    * 🍷 **Bình Giọt Lệ (Sacred Tears)**: Tự động đánh dấu tại các Nhà Thờ khi Điểm Ân Điển bên trong đã được kích hoạt (khoảng cách < 200m).
-    * 🏆 **Vật phẩm Thưởng Sau Khi Hạ Boss**: Tự động đánh dấu Đá Cổ Đại, Hạt Giống Vàng, Bùa Nhớ khi Boss tương ứng bị tiêu diệt.
-    * 🗡️ **NPC Xâm Lăng & Kẻ Địch Tinh Anh**: Tự động đánh dấu Invader bị tiêu diệt (Nerijus, Vyke, Okina, Henricus, v.v.) dựa trên cự ly tọa độ với vật phẩm vũ khí/bùa rơi độc nhất (< 70m).
-    * ✨ **Vệt Sáng Quanh Grace**: Tự động đánh dấu các tài nguyên nhặt ngay sát Điểm Ân Điển đã kích hoạt (< 60m) khi người chơi sở hữu vật phẩm trong túi đồ.
-* 🗺️ **Hỗ trợ cả 2 Bản đồ**:
-  * **The Lands Between** (Bản đồ game gốc - Map ID `413` - 5,700+ địa điểm).
-  * **Realm of Shadow** (DLC Shadow of the Erdtree - Map ID `638` - 1,800+ địa điểm).
-* 🔄 **Chế độ Gộp (Merge)**: Cho phép kết hợp dữ liệu save mới với file xuất FMG cũ để không bao giờ bị mất các ghi chú hoặc đánh dấu thủ công trước đó.
-* 🎨 **Giao diện Web Dark-Fantasy**: Giao diện mang đậm chất Elden Ring (vàng kim, đá phiến, hiệu ứng ánh sáng Grace), responsive và mượt mà trên Chrome/Edge/Brave.
+1. **Tự động tìm kiếm file save Steam**:
+   - Tự động nhận diện đường dẫn save Steam tại `%APPDATA%\EldenRing\<SteamID>\ER0000.sl2`.
+   - Hỗ trợ kéo thả hoặc chọn file save từ bất kỳ thư mục nào trên máy tính.
+2. **Hỗ trợ đầy đủ 10 Slot nhân vật**:
+   - Hiển thị tên nhân vật, cấp độ (Level), thời gian chơi (Playtime), số lần tử trận (Deaths).
+3. **Độ chính xác cao & Phân loại chi tiết**:
+   - **Sites of Grace (Điểm ân điển)**: Quét chính xác theo cờ kích hoạt event của game.
+   - **Bosses & Great Enemies (Trùm & Kẻ địch)**: Quét trùm chính, trùm phụ thế giới, trùm đêm.
+   - **Vũ khí, Giáp, Bùa hộ mệnh, Phép thuật, Sách nấu ăn, Tro tàn chiến tranh**.
+   - **Vật liệu nâng cấp (Materials)**: Đá rèn, Hoa hầm mộ, Thảo mộc hiếm (tùy chọn bật/tắt riêng).
+   - **Vật phẩm dùng 1 lần (Consumables)**: Hạt vàng (Golden Runes), Cung lửa, Bình gỉ (tùy chọn bật/tắt riêng).
+   - **Hòm đồ (Storage Box)**: Quét cả vật phẩm cất trong rương tại Grace.
+4. **Động cơ Nhận diện Không gian Thông minh (Smart Spatial Engine)**:
+   - **Cửa Hầm ngục (Dungeons)**: Tự động đánh dấu lối vào hầm ngục khi Điểm Ân Điển bên trong đã mở.
+   - **Ngục tù vĩnh hằng (Evergaols)**: Tự động đánh dấu khi trùm bên trong bị hạ gục.
+   - **Tượng ấn Yêu tinh (Imp Seal Statues)**: Đánh dấu tượng dùng Stonesword Key khi đã lấy đồ/Grace sau tượng.
+   - **Kẻ xâm lăng (NPC Invasions) & Quái Tinh Anh**: Đánh dấu khi sở hữu vũ khí/bùa rơi độc nhất tại vị trí đó (Reduvia, Vyke's Spear, Rivers of Blood, v.v.).
+   - **Túi bùa Margit (Talisman Pouch)**: Đánh dấu chuẩn xác khi Margit đã bị tiêu diệt.
+5. **Tính năng Smart Merge & Override (Gộp file FMG cũ)**:
+   - **Gộp Bổ Sung (Additive Union - Mặc định)**: Giữ 100% tất cả các điểm đánh dấu tỉ mỉ bằng tay (Landmarks, NPCs, ghi chú thế giới, hoa cỏ) + Bổ sung tất cả các điểm mới tự động phát hiện từ Save game.
+   - **Ghi Đè Độc Nhất (Strict Override)**: Giữ các điểm khám phá nhỏ, nhưng riêng với Điểm Ân Điển (Grace) và Trùm (Boss) sẽ ghi đè 100% theo đúng tiến trình thực tế của file save.
+6. **Hỗ trợ cả 2 bản đồ**:
+   - **The Lands Between** (Bản đồ game gốc - Map ID `413`).
+   - **Realm of Shadow** (DLC Shadow of the Erdtree - Map ID `638`).
 
 ---
 
-## 🚀 HƯỚNG DẪN SỬ DỤNG NHANH (3 BƯỚC)
+## 🚀 CÁCH SỬ DỤNG (CỰC KỲ ĐƠN GIẢN)
 
-### Bước 1: Khởi động công cụ
-* Tải bản phát hành mới nhất tại mục [Releases](https://github.com/lphthuan/elden-ring-mapgenie-sync/releases/latest) và giải nén.
-* Nhấp đúp vào file **`Chay_Tool_Sync.bat`** (hoặc `run.bat`).
-* Trình duyệt web sẽ tự động mở giao diện tại địa chỉ: `http://127.0.0.1:8088`.
-
-### Bước 2: Quét file Save
-1. Nhấp nút **"Nạp File Này"** (công cụ tự phát hiện save Steam của bạn) hoặc kéo thả file `ER0000.sl2` vào khung.
-2. Nhấp chuột để chọn **Nhân vật** bạn muốn đồng bộ (ví dụ: *Slot 1: Thune - Level 99*).
-3. Chọn bản đồ cần quét:
-   * **The Lands Between** (Game gốc)
-   * **Realm of Shadow** (DLC)
-4. Tích chọn các mục vật phẩm muốn đánh dấu (Grace, Boss, Vũ khí, Bùa, v.v.).
-5. Nhấn **"⚡ Bắt Đầu Quét & Tạo File FMG"** ➔ Nhấn **"📥 Tải File JSON Cho FMG"** để lưu file import về máy tính.
-
-### Bước 3: Nhập (Import) vào Extension Free Map Genie
-1. Mở Chrome (hoặc Edge/Brave) đã cài tiện ích **Free Map Genie (FMG)**.
-2. Bấm vào icon FMG trên thanh công cụ tiện ích ➔ Chọn **Data Manager**.
-3. Chuyển sang thẻ **Import**.
-4. Kéo thả file JSON vừa tải về ở Bước 2 vào khung Import ➔ Nhấn xác nhận.
-5. Mở lại bản đồ [MapGenie The Lands Between](https://mapgenie.io/elden-ring/maps/the-lands-between) và nhấn **F5** để tải lại trang.
-6. 🎉 **Toàn bộ vị trí vật phẩm đã nhặt và boss đã hạ sẽ tự động được đánh dấu hoàn thành trên bản đồ!**
+### Cách 1: Sử dụng Giao diện Web (Khuyên dùng)
+1. Nhấp đúp vào file **`Chay_Sync_Save_EldenRing.bat`** (ở thư mục gốc) hoặc file **`run_web_ui.bat`** (trong thư mục `EldenRing_SaveSync`).
+2. Trình duyệt Chrome sẽ tự động mở trang giao diện: `http://127.0.0.1:8088`.
+3. Nhấp nút **"Nạp File Này"** (công cụ tự phát hiện save Steam) hoặc kéo thả file `ER0000.sl2` vào trang web.
+4. Bấm chọn **Nhân vật** bạn muốn đồng bộ (ví dụ: Slot 1: Thune - Level 99).
+5. *(Tùy chọn)* Kéo thả file **FMG JSON cũ** đã đánh dấu bằng tay vào khung **"Kết Hợp Với File FMG Cũ"** và chọn chế độ:
+   - **Gộp Bổ Sung**: Giữ nguyên toàn bộ điểm cũ + thêm điểm mới.
+   - **Ghi Đè Độc Nhất**: Cập nhật lại Grace và Boss theo đúng file save.
+6. Chọn bản đồ (**The Lands Between** hoặc **Realm of Shadow**).
+7. Bấm nút **"⚡ Bắt Đầu Quét & Tạo File FMG"**.
+8. Bấm **"📥 Tải File JSON Cho FMG"** để lưu file import về máy.
 
 ---
 
-## 💻 SỬ DỤNG DÒNG LỆNH (CLI)
-
-Dành cho người dùng thích tự động hóa qua terminal:
-
+### Cách 2: Sử dụng dòng lệnh (CLI)
+Mở PowerShell hoặc CMD trong thư mục `EldenRing_SaveSync`:
 ```bash
-# Quét tự động save Steam mặc định và xuất file cho bản đồ The Lands Between
-python elden_ring_fmg_sync.py --slot 0 --map 413 --user 7764114 --output fmg_import.json
+# Quét tự động save Steam, xuất cho bản đồ The Lands Between:
+python elden_ring_fmg_sync.py --slot 0 --map 413 --user 7764114 --output fmg_import_ready.json
 
-# Quét file save tùy chọn
-python elden_ring_fmg_sync.py --save "C:\path\to\ER0000.sl2" --slot 0 --map 413
+# Quét và gộp bổ sung (Additive) với file FMG cũ:
+python elden_ring_fmg_sync.py --slot 0 --map 413 --user 7764114 --merge "data/manual_fmg_user_marked.json" --merge-mode additive --output fmg_merged.json
 
-# Quét và gộp (merge) với file FMG JSON cũ
-python elden_ring_fmg_sync.py --slot 0 --map 413 --merge "old_fmg_export.json" --output fmg_merged.json
-
-# Quét cho bản đồ DLC Shadow of the Erdtree
-python elden_ring_fmg_sync.py --slot 0 --map 638 --output fmg_dlc.json
-
-# Khởi chạy giao diện Web server
-python elden_ring_fmg_sync.py --web --port 8088
-```
-
-### Các tham số CLI:
-| Tham số | Ý nghĩa | Mặc định |
-| :--- | :--- | :--- |
-| `--save` | Đường dẫn tới file `ER0000.sl2` | Tự động dò save Steam |
-| `--slot` | Vị trí nhân vật (`0` đến `9`) | `0` (Slot đầu tiên) |
-| `--map` | Map ID MapGenie: `413` (Gốc) hoặc `638` (DLC) | `413` |
-| `--user` | MapGenie User ID | `7764114` |
-| `--merge` | File JSON FMG cũ để gộp thêm | Không gộp |
-| `--output` | Đường dẫn file JSON xuất ra | Tự động đặt tên theo Map & User |
-| `--no-materials` | Tắt quét vật liệu (Materials: đá rèn, hoa hầm mộ, thảo mộc hiếm) | Mặc định bật |
-| `--no-consumables` | Tắt quét vật phẩm dùng 1 lần (Consumables: Runes, Rune Arcs, tên) | Mặc định bật |
-| `--no-strict-unique` | Tắt Strict Unique Mode (quét cả item rơi nhiều nơi) | Mặc định bật (chỉ quét item độc nhất) |
-| `--no-spatial` | Tắt Spatial Mapping (Tear nhà thờ, thưởng boss, vùng Grace, Invader) | Mặc định bật |
-| `--web` | Chạy ở chế độ giao diện Web | Bật nếu không truyền cờ khác |
-| `--port` | Cổng HTTP Server cho giao diện Web | `8088` |
-
----
-
-## 📂 CẤU TRÚC THƯ MỤC
-
-```text
-elden-ring-mapgenie-sync/
-├── data/                         # Cơ sở dữ liệu MapGenie & Bảng tra cứu Game Param
-│   ├── clean_graces.json         # Danh mục 419 Sites of Grace & Event Flag IDs
-│   ├── clean_bosses.json         # Danh mục 212 Bosses & Defeat Flag IDs
-│   ├── eventflag-bst.txt         # Bảng cây nhị phân giải mã cờ Event Flags
-│   ├── map_413_data.json         # Database đầy đủ MapGenie: The Lands Between
-│   ├── map_638_data.json         # Database đầy đủ MapGenie: Realm of Shadow (DLC)
-│   ├── EquipParam*.txt           # Bảng tra cứu tên vũ khí, giáp, bùa, phép thuật
-│   └── aliases.json              # Từ điển chuẩn hóa tên gọi giữa game và MapGenie
-├── web/
-│   └── index.html                # Giao diện Web dark-fantasy
-├── er_save_parser.py             # Parser nhị phân giải mã file save ER0000.sl2
-├── mapgenie_sync.py              # Engine đối soát và sinh JSON chuẩn FMG v2
-├── web_app.py                    # Máy chủ Web siêu nhẹ (chuẩn Python http.server)
-├── elden_ring_fmg_sync.py        # File thực thi dòng lệnh & khởi chạy Web
-├── Chay_Tool_Sync.bat            # Phím tắt nhấp đúp chạy nhanh trên Windows
-├── run.bat                       # Phím tắt ngắn gọn
-├── LICENSE                       # Giấy phép nguồn mở MIT
-└── README.md                     # Tài liệu hướng dẫn sử dụng
+# Quét và ghi đè độc nhất (Override) Grace/Boss theo file save:
+python elden_ring_fmg_sync.py --slot 0 --map 413 --user 7764114 --merge "data/manual_fmg_user_marked.json" --merge-mode override --output fmg_merged_override.json
 ```
 
 ---
 
-## ⚙️ NGUYÊN LÝ HOẠT ĐỘNG (DÀNH CHO DEV)
+## 📥 HƯỚNG DẪN IMPORT VÀO MAPGENIE (FMG)
 
-1. **Cấu trúc File Save Elden Ring (`ER0000.sl2`)**:
-   * File đóng gói dạng container BND4 (magic `BND4` tại `0x00`).
-   * Chứa 10 Slot nhân vật (`0x300` + stride `0x280010` mỗi slot).
-   * Vùng `UserData10` tại offset `0x19003A0` lưu trữ thông tin active profile, thời gian chơi, Steam ID.
-2. **Giải mã Kho đồ (Inventory & Storage)**:
-   * Đọc bảng GaItem (bảng băm liên kết `handle:u32 ➔ item_id:u32`).
-   * Phân giải túi đồ thường (`0xA80` slot), túi đồ nhiệm vụ (`0x180` slot) và hòm đồ tại Grace.
-   * Lọc và loại bỏ bitmask cấp độ cường hóa vũ khí (`raw_id - (raw_id % 100)`).
-3. **Giải mã Cờ Sự Kiện (Event Flags Decoding)**:
-   * Vùng dữ liệu cờ `0x1BF99F` byte được lập chỉ mục thông qua thuật toán FromSoftware Event Flag Binary Search Tree (`eventflag-bst.txt`):
-     ```python
-     mult = EVENT_FLAG_BST[flag_id // 1000]
-     index = flag_id % 1000
-     byte_offset = mult * 125 + (index // 8)
-     bit_pos = 7 - (index % 8)
-     is_active = (raw_flags[byte_offset] & (1 << bit_pos)) != 0
-     ```
-4. **Đối soát & Tạo cấu trúc FMG v2**:
-   * Chuẩn hóa ký tự và tên gọi theo từ điển `aliases.json`.
-   * Tạo payload JSON khớp 100% schema Zod validation của extension Free Map Genie (FMG):
-     ```json
-     {
-       "version": 2,
-       "gameId": 111,
-       "mapId": 413,
-       "userId": 7764114,
-       "data": {
-         "locationIds": [163925, 163926, ...]
-       }
-     }
-     ```
-
----
-
-## 🤝 LỜI CẢM ƠN & THAM KHẢO
-
-Dự án này sử dụng và kế thừa các nghiên cứu xuất sắc từ cộng đồng mã nguồn mở:
-* [EthanShoeDev/elden-ring-compass](https://github.com/EthanShoeDev/elden-ring-compass): Tham khảo cấu trúc parser save TypeScript và bảng cây nhị phân Event Flags.
-* [soulsmods/Paramdex](https://github.com/soulsmods/Paramdex): Tham khảo bảng danh mục tên vật phẩm và tham số Elden Ring.
-* [Free Map Genie (FMG)](https://github.com/fmg-project): Tiện ích mở rộng bản đồ tương tác trên Chrome.
-* [MapGenie.io](https://mapgenie.io/elden-ring): Bản đồ tương tác tuyệt vời dành cho Elden Ring.
-
----
-
-## 📄 BẢN QUYỀN (LICENSE)
-
-Dự án được phát hành theo giấy phép [MIT License](LICENSE). Tự do sử dụng, chỉnh sửa và chia sẻ cho cộng đồng người chơi Elden Ring!
+1. Mở trình duyệt Chrome có cài extension **Free Map Genie (FMG)**.
+2. Bấm vào icon **FMG** trên thanh công cụ tiện ích ➔ Chọn **Data Manager** (hoặc mở trực tiếp file `dataManager.html` của extension).
+3. Tại giao diện Data Manager:
+   - Chuyển sang thẻ **Import**.
+   - Kéo thả file JSON vừa tạo (`fmg_import_ready_map413.json` hoặc file vừa tải về) vào khung Import.
+   - Nhấn nút xác nhận Import.
+4. Mở lại bản đồ [MapGenie Elden Ring](https://mapgenie.io/elden-ring/maps/the-lands-between) và nhấn **F5 (Reload)**.
+5. Toàn bộ các Điểm ân điển, Trùm và Vật phẩm mà nhân vật của bạn đã nhặt sẽ tự động được tích dấu hoàn thành trên bản đồ!
