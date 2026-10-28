@@ -907,6 +907,38 @@
         <!-- Breakdown cards injected via JS -->
       </div>
 
+      <!-- DIFF LOG BOX (SMART MERGE COMPARISON) -->
+      <div id="diffLogSection" style="display: none; flex-direction: column; gap: 12px; background: rgba(18, 26, 38, 0.9); border: 1px solid var(--border-gold); border-radius: var(--radius-md); padding: 18px 22px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">
+          <h3 style="font-size: 15px; font-weight: 700; color: var(--gold-light); display: flex; align-items: center; gap: 8px;">
+            <span>📋</span> Nhật Ký So Sánh Sai Khác (Smart Merge Diff Log)
+          </h3>
+          <span class="feature-badge badge-gold" id="diffModeBadge">ADDITIVE</span>
+        </div>
+        
+        <div id="diffSummaryText" style="font-size: 13px; color: var(--text-main); line-height: 1.6;">
+          <!-- Injected via JS -->
+        </div>
+
+        <div id="diffOverriddenList" style="display: none; flex-direction: column; gap: 8px; margin-top: 6px;">
+          <div style="font-size: 12px; font-weight: 700; color: #f87171; display: flex; align-items: center; gap: 6px;">
+            <span>⚠️</span> Các mục bản cũ đã đánh dấu nhầm (Thực tế file Save chưa hoàn thành):
+          </div>
+          <div id="diffOverriddenItemsContainer" style="display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; padding-right: 6px;">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <div id="diffAddedList" style="display: none; flex-direction: column; gap: 6px; margin-top: 4px;">
+          <div style="font-size: 12px; font-weight: 700; color: var(--cyan); display: flex; align-items: center; gap: 6px;">
+            <span>✨</span> Các vị trí mới phát hiện từ Save được bổ sung:
+          </div>
+          <div id="diffAddedSamplesContainer" style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+      </div>
+
       <div class="guide-box">
         <strong>💡 Hướng Dẫn Nhập Vào MapGenie:</strong>
         <ol style="margin-left: 20px; display: flex; flex-direction: column; gap: 4px;">
@@ -1273,6 +1305,82 @@
           `;
           grid.appendChild(card);
         }
+      }
+
+      // Render Diff Log if merge occurred
+      const diffSection = document.getElementById('diffLogSection');
+      if (data.diff_log) {
+        const diff = data.diff_log;
+        diffSection.style.display = 'flex';
+        const modeBadge = document.getElementById('diffModeBadge');
+        modeBadge.textContent = diff.mode === 'override' ? '🎯 GHI ĐÈ ĐỘC NHẤT (OVERRIDE)' : '🌟 GỘP BỔ SUNG (ADDITIVE)';
+        modeBadge.className = diff.mode === 'override' ? 'feature-badge badge-gold' : 'feature-badge badge-cyan';
+
+        const summaryEl = document.getElementById('diffSummaryText');
+        if (diff.mode === 'override') {
+          summaryEl.innerHTML = `
+            Đang áp dụng chế độ <strong>Ghi Đè Độc Nhất (Override)</strong>:
+            Đã giữ lại toàn bộ các điểm khám phá nhỏ của bản cũ, nhưng <strong>loại bỏ ${diff.overridden_count} mục độc nhất (Trùm/Grace)</strong> mà bản cũ đánh dấu nhầm (chưa hoàn thành trong save).
+            Đồng thời bổ sung <strong>+${diff.added_count} vị trí mới</strong> từ Save game.
+          `;
+        } else {
+          summaryEl.innerHTML = `
+            Đang áp dụng chế độ <strong>Gộp Bổ Sung (Additive)</strong>:
+            Giữ nguyên toàn bộ <strong>${diff.old_count} vị trí cũ</strong> và bổ sung thêm <strong>+${diff.added_count} vị trí mới</strong> từ Save game.
+            ${diff.overridden_count > 0 ? `<br><span style="color: #f87171;">⚠️ Lưu ý: Bản cũ có ${diff.overridden_count} mục độc nhất chưa hoàn thành trong save nhưng vẫn được giữ lại do đang ở chế độ Gộp Bổ Sung.</span>` : ''}
+          `;
+        }
+
+        const overriddenList = document.getElementById('diffOverriddenList');
+        const overriddenContainer = document.getElementById('diffOverriddenItemsContainer');
+        overriddenContainer.innerHTML = '';
+        if (diff.overridden_count > 0) {
+          overriddenList.style.display = 'flex';
+          diff.overridden_items.forEach(itm => {
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.alignItems = 'center';
+            row.style.justifyContent = 'space-between';
+            row.style.background = 'rgba(239, 68, 68, 0.08)';
+            row.style.border = '1px solid rgba(239, 68, 68, 0.2)';
+            row.style.borderRadius = '4px';
+            row.style.padding = '6px 10px';
+            row.style.fontSize = '12px';
+            row.innerHTML = `
+              <span style="color: #fca5a5; font-weight: 600;">[${itm.category}] ${itm.title} (ID ${itm.id})</span>
+              <span style="color: var(--text-muted); font-size: 11px;">${itm.reason} ${diff.mode === 'override' ? '➔ <strong style="color: #4ade80;">Đã bỏ chọn</strong>' : '➔ <em>Vẫn giữ</em>'}</span>
+            `;
+            overriddenContainer.appendChild(row);
+          });
+        } else {
+          overriddenList.style.display = 'none';
+        }
+
+        const addedList = document.getElementById('diffAddedList');
+        const addedContainer = document.getElementById('diffAddedSamplesContainer');
+        addedContainer.innerHTML = '';
+        if (diff.added_count > 0 && diff.added_samples && diff.added_samples.length > 0) {
+          addedList.style.display = 'flex';
+          diff.added_samples.forEach(s => {
+            const tag = document.createElement('span');
+            tag.className = 'sample-tag';
+            tag.style.background = 'rgba(0, 201, 167, 0.15)';
+            tag.style.color = 'var(--cyan)';
+            tag.style.border = '1px solid rgba(0, 201, 167, 0.3)';
+            tag.textContent = s;
+            addedContainer.appendChild(tag);
+          });
+          if (diff.added_count > diff.added_samples.length) {
+            const moreTag = document.createElement('span');
+            moreTag.className = 'sample-tag';
+            moreTag.textContent = `... và ${diff.added_count - diff.added_samples.length} điểm khác`;
+            addedContainer.appendChild(moreTag);
+          }
+        } else {
+          addedList.style.display = 'none';
+        }
+      } else {
+        diffSection.style.display = 'none';
       }
 
       section.scrollIntoView({ behavior: 'smooth' });

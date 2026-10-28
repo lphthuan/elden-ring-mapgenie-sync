@@ -19,6 +19,7 @@ def norm_title(s: str) -> str:
     s = s.lower().strip()
     s = s.replace("’", "'").replace("`", "'")
     s = re.sub(r'^(ash of war:\s*)', '', s)
+    s = re.sub(r'^\[.*?\]\s*', '', s)
     s = re.sub(r'\s+', ' ', s)
     return s
 
@@ -83,7 +84,8 @@ class MapGenieSyncEngine:
                     for line in f:
                         parts = line.strip().split(' ', 1)
                         if len(parts) == 2 and parts[0].isdigit():
-                            self.names[key][int(parts[0])] = parts[1]
+                            clean_name = re.sub(r'^\[.*?\]\s*', '', parts[1]).strip()
+                            self.names[key][int(parts[0])] = clean_name
 
         # 3. Reference graces & bosses
         g_path = os.path.join(self.data_dir, 'clean_graces.json')
@@ -236,16 +238,9 @@ class MapGenieSyncEngine:
 
         player_items = {} # norm_title -> raw_name
 
-        # Key items
-        for item in key_pool:
-            raw_id = item['id']
-            clean_id = raw_id & 0x0FFFFFFF
-            name = self.names['goods'].get(clean_id) or self.names['goods'].get(raw_id)
-            if name:
-                player_items[norm_title(name)] = name
-
-        # Common items (weapons, armors, accessories, magic, sword_arts, goods)
-        for item in common_pool:
+        # Pool all held and storage items across all item types
+        all_pool = common_pool + key_pool
+        for item in all_pool:
             raw_id = item['id']
             clean_id = raw_id & 0x0FFFFFFF
             w_base = clean_id - (clean_id % 100)
@@ -261,9 +256,15 @@ class MapGenieSyncEngine:
         strict_unique = options.get('strict_unique', True)
 
         for n_norm, locs in items_idx.items():
-            if n_norm not in player_items:
+            raw_name = player_items.get(n_norm)
+            if not raw_name:
+                n_alnum = clean_alnum(n_norm)
+                for p_norm, p_raw in player_items.items():
+                    if clean_alnum(p_norm) == n_alnum:
+                        raw_name = p_raw
+                        break
+            if not raw_name:
                 continue
-            raw_name = player_items[n_norm]
 
             # In Strict Unique Mode: ONLY mark if item appears EXACTLY ONCE on this map!
             if strict_unique and len(locs) > 1:
@@ -431,16 +432,35 @@ class MapGenieSyncEngine:
                 matched_location_ids.add(166509)
                 breakdown['talismans']['count'] += 1
 
-        # 5. SMART MERGE WITH EXISTING FMG EXPORT
+        # 5. SMART MERGE WITH EXISTING FMG EXPORT & DIFF LOG
+        diff_log = None
         if existing_fmg_data:
             existing_locs = set(existing_fmg_data.get('data', {}).get('locationIds', []))
             merge_mode = options.get('merge_mode', 'additive') # 'additive' or 'override'
+            all_locs_dict = {l['id']: l for l in self.maps_data.get(map_id, {}).get('locations', [])}
+            verified_strict_cats = GRACE_CATS | BOSS_CATS
+
+            # Detect false positives in old manual file:
+            # Graces or Bosses marked in old manual file, but NOT active/defeated in this save!
+            false_positives = []
+            for lid in sorted(list(existing_locs)):
+                l = all_locs_dict.get(lid)
+                if l and l.get('category_id') in verified_strict_cats:
+                    if lid not in matched_location_ids:
+                        cat_label = 'Grace' if l.get('category_id') in GRACE_CATS else 'Boss'
+                        false_positives.append({
+                            'id': lid,
+                            'title': l.get('title'),
+                            'category': cat_label,
+                            'reason': 'Chưa kích hoạt trong file save' if cat_label == 'Grace' else 'Chưa bị tiêu diệt trong file save'
+                        })
+
+            # Detect items newly added from save:
+            newly_added_ids = matched_location_ids - existing_locs
+            newly_added_samples = [all_locs_dict[lid]['title'] for lid in list(newly_added_ids)[:12] if lid in all_locs_dict]
 
             if merge_mode == 'override':
-                # Overwrite 100% verified unique categories (Graces & Bosses) with current save reality
-                all_locs_dict = {l['id']: l for l in self.maps_data.get(map_id, {}).get('locations', [])}
-                verified_strict_cats = GRACE_CATS | BOSS_CATS
-
+                # Overwrite verified strict categories (Graces & Bosses) with current save reality
                 kept_existing = set()
                 for lid in existing_locs:
                     l = all_locs_dict.get(lid)
@@ -462,6 +482,15 @@ class MapGenieSyncEngine:
                     'count': len(existing_locs),
                     'samples': [f"Gộp {len(existing_locs)} điểm từ file cũ (chế độ gộp bổ sung)"]
                 }
+
+            diff_log = {
+                'mode': merge_mode,
+                'old_count': len(existing_locs),
+                'overridden_count': len(false_positives),
+                'overridden_items': false_positives,
+                'added_count': len(newly_added_ids),
+                'added_samples': newly_added_samples
+            }
 
         # Build final FMG JSON payload
         sorted_locations = sorted(list(matched_location_ids))
@@ -487,5 +516,6 @@ class MapGenieSyncEngine:
             'map_name': "The Lands Between" if map_id == 413 else "Realm of Shadow",
             'total_locations_found': len(sorted_locations),
             'breakdown': breakdown,
+            'diff_log': diff_log,
             'fmg_json': fmg_payload
         }

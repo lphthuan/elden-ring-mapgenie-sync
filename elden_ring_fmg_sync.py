@@ -107,6 +107,24 @@ def main():
             print(f"  - {k}: {v}")
     print("=" * 50)
 
+    if res.get('diff_log'):
+        diff = res['diff_log']
+        mode_str = "GỘP BỔ SUNG (ADDITIVE)" if diff['mode'] == 'additive' else "GHI ĐÈ ĐỘC NHẤT (OVERRIDE)"
+        print("\n" + "=" * 50)
+        print(f"NHẬT KÝ SO SÁNH & SAI KHÁC ({mode_str}):")
+        print(f"  - Số điểm trong file cũ: {diff['old_count']}")
+        print(f"  - Bổ sung từ file Save: +{diff['added_count']} vị trí mới")
+        if diff['overridden_count'] > 0:
+            if diff['mode'] == 'override':
+                print(f"  - [GHI ĐÈ] Đã loại bỏ {diff['overridden_count']} mục bản cũ đánh dấu nhầm (chưa xong trong save):")
+            else:
+                print(f"  - [CẢNH BÁO] Phát hiện {diff['overridden_count']} mục bản cũ đánh dấu nhầm (vẫn giữ do chọn Additive):")
+            for itm in diff['overridden_items']:
+                print(f"    * [{itm['category']}] {itm['title']} (ID: {itm['id']}) - {itm['reason']}")
+        else:
+            print("  - Bản cũ không có mục độc nhất nào bị đánh dấu nhầm.")
+        print("=" * 50)
+
     out_file = args.output
     if not out_file:
         out_file = f"fmg_game_111_map_{args.map}_user_{args.user}_sync.json"
