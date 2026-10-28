@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elden Ring ➔ MapGenie Sync Tool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #0b0d11;
+      --bg-card: rgba(18, 22, 30, 0.75);
+      --bg-card-hover: rgba(26, 32, 44, 0.9);
+      --border-gold: rgba(212, 175, 55, 0.28);
+      --border-gold-glow: rgba(212, 175, 55, 0.65);
+      --gold-primary: #dfba73;
+      --gold-light: #f7e0aa;
+      --gold-dark: #8c6d32;
+      --amber-grace: #f59e0b;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --text-dark: #64748b;
+      --accent-blue: #38bdf8;
+      --accent-green: #34d399;
+      --accent-red: #f87171;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.12) 0%, transparent 60%),
+        radial-gradient(circle at 10% 40%, rgba(245, 158, 11, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 70%, rgba(56, 189, 248, 0.04) 0%, transparent 40%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 80px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* HEADER */
+    .header {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 14px;
+      background: rgba(212, 175, 55, 0.12);
+      border: 1px solid var(--border-gold);
+      border-radius: 999px;
+      color: var(--gold-light);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .header-title {
+      font-family: 'Cinzel', serif;
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--gold-light);
+      letter-spacing: 2px;
+      text-shadow: 0 0 24px rgba(212, 175, 55, 0.35);
+    }
+
+    .header-subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+      max-width: 620px;
+      line-height: 1.6;
+    }
+
+    /* CARD STYLING */
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-lg);
+      padding: 24px 28px;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .card:hover {
+      border-color: rgba(212, 175, 55, 0.45);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 14px;
+    }
+
+    .card-title {
+      font-family: 'Cinzel', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--gold-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-primary), var(--gold-dark));
+      color: #0b0d11;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    /* STEP 1: SAVE FILE SELECTOR */
+    .save-detector {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .detected-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px dashed rgba(212, 175, 55, 0.35);
+      border-radius: var(--radius-md);
+      gap: 12px;
+    }
+
+    .detected-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      overflow: hidden;
+    }
+
+    .detected-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--gold-primary);
+      letter-spacing: 0.5px;
+    }
+
+    .detected-path {
+      font-size: 13px;
+      color: var(--text-main);
+      font-family: monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dropzone {
+      border: 2px dashed rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      background: rgba(11, 14, 20, 0.4);
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--gold-primary);
+      background: rgba(212, 175, 55, 0.05);
+    }
+
+    .dropzone-text {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .dropzone-text span {
+      color: var(--gold-primary);
+      font-weight: 600;
+      text-decoration: underline;
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      outline: none;
+      white-space: nowrap;
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold-primary), var(--gold-dark));
+      color: #0b0d11;
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+    }
+
+    .btn-gold:hover {
+      background: linear-gradient(135deg, var(--gold-light), var(--gold-primary));
+      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border-gold);
+      color: var(--gold-light);
+    }
+
+    .btn-outline:hover {
+      background: rgba(212, 175, 55, 0.12);
+      border-color: var(--gold-primary);
+    }
+
+    .btn-lg {
+      padding: 15px 32px;
+      font-size: 15px;
+      font-family: 'Cinzel', serif;
+      letter-spacing: 1px;
+      border-radius: var(--radius-md);
+      font-weight: 700;
+    }
+
+    /* STEP 2: CHARACTER SLOTS */
+    .slots-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .slot-card {
+      background: rgba(15, 20, 28, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+    }
+
+    .slot-card:hover {
+      border-color: var(--border-gold);
+      transform: translateY(-2px);
+      background: var(--bg-card-hover);
+    }
+
+    .slot-card.active {
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 16px rgba(212, 175, 55, 0.25);
+      background: rgba(212, 175, 55, 0.06);
+    }
+
+    .slot-card.active::before {
+      content: '✓ ĐÃ CHỌN';
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--gold-primary);
+      letter-spacing: 0.5px;
+    }
+
+    .slot-name {
+      font-family: 'Cinzel', serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--gold-light);
+    }
+
+    .slot-details {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .slot-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+    }
+
+    .slot-badge.lvl {
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+
+    /* STEP 3: OPTIONS & MAP */
+    .options-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .options-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .map-select-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .map-btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .map-btn {
+      padding: 14px 12px;
+      background: rgba(15, 20, 28, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-md);
+      color: var(--text-muted);
+      cursor: pointer;
+      text-align: center;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .map-btn:hover {
+      border-color: var(--border-gold);
+    }
+
+    .map-btn.selected {
+      border-color: var(--gold-primary);
+      background: rgba(212, 175, 55, 0.1);
+      color: var(--gold-light);
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.2);
+    }
+
+    .map-btn-title {
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .map-btn-sub {
+      font-size: 11px;
+      opacity: 0.75;
+    }
+
+    /* CATEGORIES TOGGLE LIST */
+    .category-toggles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-main);
+      cursor: pointer;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: var(--transition);
+    }
+
+    .toggle-label:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .toggle-label input[type="checkbox"] {
+      accent-color: var(--gold-primary);
+      width: 16px;
+      height: 16px;
+    }
+
+    /* STEP 4: USER ID & MERGE */
+    .fmg-settings {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .input-row label {
+      font-size: 13px;
+      color: var(--text-muted);
+      min-width: 140px;
+    }
+
+    .text-input {
+      background: rgba(15, 20, 28, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      color: var(--text-main);
+      font-size: 13px;
+      outline: none;
+      transition: var(--transition);
+      width: 220px;
+    }
+
+    .text-input:focus {
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+    }
+
+    /* STEP 5: RESULTS & DOWNLOAD */
+    .results-panel {
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+      background: rgba(15, 22, 32, 0.9);
+      border: 1px solid var(--gold-primary);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: 0 0 30px rgba(212, 175, 55, 0.15);
+    }
+
+    .results-hero {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .results-count-box {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .results-number {
+      font-family: 'Cinzel', serif;
+      font-size: 48px;
+      font-weight: 900;
+      color: var(--gold-light);
+      text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+    }
+
+    .results-label {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .breakdown-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .breakdown-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .breakdown-card-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .breakdown-card-num {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gold-primary);
+    }
+
+    /* INSTRUCTIONS ACCORDION */
+    .guide-box {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .guide-box strong {
+      color: var(--accent-blue);
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 20px;
+      background: rgba(18, 24, 34, 0.95);
+      border: 1px solid var(--gold-primary);
+      border-radius: var(--radius-md);
+      color: var(--gold-light);
+      font-size: 13px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: var(--transition);
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-badge">Elden Ring Save to FMG Converter</div>
+      <h1 class="header-title">Elden Ring ➔ MapGenie Sync</h1>
+      <p class="header-subtitle">
+        Tự động quét file save game (Điểm ân điển, Trùm, Vũ khí, Giáp, Bùa, Sách, Bản đồ) và tạo file JSON chuẩn để Import trực tiếp vào extension Free Map Genie (FMG).
+      </p>
+    </header>
+
+    <!-- STEP 1: LOAD SAVE FILE -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title"><span class="step-num">1</span> Chọn File Save Elden Ring (ER0000.sl2)</h2>
+      </div>
+
+      <div class="save-detector">
+        <div class="detected-box" id="detectedBox" style="display: none;">
+          <div class="detected-info">
+            <span class="detected-label">✨ Tìm thấy file Save Steam tự động</span>
+            <span class="detected-path" id="detectedPathText">...</span>
+          </div>
+          <button class="btn btn-gold" id="btnLoadDetected">Nạp File Này</button>
+        </div>
+
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="fileInput" accept=".sl2" style="display: none;">
+          <p class="dropzone-text">
+            Kéo thả file <strong>ER0000.sl2</strong> vào đây hoặc <span id="btnBrowse">chọn từ máy tính</span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: SELECT CHARACTER SLOT -->
+    <div class="card" id="slotCardSection" style="display: none;">
+      <div class="card-header">
+        <h2 class="card-title"><span class="step-num">2</span> Chọn Nhân Vật Cần Đồng Bộ</h2>
+      </div>
+      <div class="slots-grid" id="slotsContainer">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+
+    <!-- STEP 3: OPTIONS & MAP SELECTION -->
+    <div class="card" id="optionsSection" style="display: none;">
+      <div class="card-header">
+        <h2 class="card-title"><span class="step-num">3</span> Chọn Bản Đồ & Mục Cần Quét</h2>
+      </div>
+
+      <div class="options-container">
+        <!-- MAP SELECT -->
+        <div class="map-select-group">
+          <label style="font-size: 13px; font-weight: 600; color: var(--gold-primary);">Bản Đồ MapGenie Mục Tiêu:</label>
+          <div class="map-btn-group">
+            <div class="map-btn selected" data-map="413">
+              <span class="map-btn-title">The Lands Between</span>
+              <span class="map-btn-sub">Game gốc (Map ID 413)</span>
+            </div>
+            <div class="map-btn" data-map="638">
+              <span class="map-btn-title">Realm of Shadow</span>
+              <span class="map-btn-sub">DLC Erdtree (Map ID 638)</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 12px; color: var(--text-muted);">User ID (từ tài khoản MapGenie):</label>
+            <input type="number" id="userIdInput" class="text-input" value="7764114" placeholder="Ví dụ: 7764114">
+          </div>
+        </div>
+
+        <!-- CATEGORIES TOGGLE -->
+        <div class="map-select-group">
+          <label style="font-size: 13px; font-weight: 600; color: var(--gold-primary);">Các Hạng Mục Đánh Dấu:</label>
+          <div class="category-toggles">
+            <label class="toggle-label">
+              <input type="checkbox" id="sync_graces" checked> 🌟 Điểm Ân Điển (Grace)
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox" id="sync_bosses" checked> ⚔️ Boss & Kẻ Địch
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox" id="sync_weapons" checked> 🗡️ Vũ Khí & Khiên
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox" id="sync_armor" checked> 🛡️ Áo Giáp & Nón
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox" id="sync_talismans" checked> 💍 Bùa Hộ Mệnh (Talisman)
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox" id="sync_spells" checked> ✨ Phép & Lời Nguyện
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox" id="sync_key_items" checked> 📜 Sách Nấu & Bản Đồ
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox" id="sync_ashes" checked> 🌪️ Tro Tàn Chiến Tranh
+            </label>
+            <label class="toggle-label" style="grid-column: span 2;">
+              <input type="checkbox" id="include_storage" checked> 📦 Quét cả vật phẩm trong Hòm Đồ (Storage Box)
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+        <button class="btn btn-gold btn-lg" id="btnExecuteSync">
+          ⚡ Bắt Đầu Quét & Tạo File FMG
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 4: RESULTS -->
+    <div class="results-panel" id="resultsSection">
+      <div class="results-hero">
+        <div>
+          <div class="results-count-box">
+            <span class="results-number" id="totalLocationsNum">0</span>
+            <span class="results-label">vị trí đã được đánh dấu tự động</span>
+          </div>
+          <p style="font-size: 13px; color: var(--gold-primary);" id="resultCharSummary">Nhân vật: ...</p>
+        </div>
+        <button class="btn btn-gold btn-lg" id="btnDownloadJson">
+          📥 Tải File JSON Cho FMG
+        </button>
+      </div>
+
+      <div class="breakdown-grid" id="breakdownGrid">
+        <!-- Breakdown cards injected via JS -->
+      </div>
+
+      <div class="guide-box">
+        <strong>💡 Hướng Dẫn Nhập Vào MapGenie:</strong>
+        <ol style="margin-left: 20px; display: flex; flex-direction: column; gap: 4px;">
+          <li>Mở Chrome, bấm vào icon extension <strong>Free Map Genie (FMG)</strong> trên thanh công cụ.</li>
+          <li>Chọn <strong>Data Manager</strong> (hoặc mở trực tiếp trang dataManager.html).</li>
+          <li>Chọn tab <strong>Import</strong> ➔ Kéo thả file JSON vừa tải về vào ô Import ➔ Xác nhận.</li>
+          <li>Mở lại trang MapGenie Elden Ring và tải lại trang, toàn bộ các vị trí đã nhặt sẽ tự động được tích dấu hoàn thành!</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Thông báo</div>
+
+  <script>
+    let detectedSavePath = null;
+    let selectedSlotIndex = 0;
+    let selectedMapId = 413;
+    let loadedProfiles = [];
+    let currentFmgJson = null;
+
+    const toastEl = document.getElementById('toast');
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), 3000);
+    }
+
+    // 1. Initial Auto-detect
+    async function checkAutoDetect() {
+      try {
+        const res = await fetch('/api/detect-save');
+        const data = await res.json();
+        if (data.save_path) {
+          detectedSavePath = data.save_path;
+          document.getElementById('detectedPathText').textContent = data.save_path;
+          document.getElementById('detectedBox').style.display = 'flex';
+        }
+      } catch (err) {
+        console.log('Detect error:', err);
+      }
+    }
+    checkAutoDetect();
+
+    // 2. Load Detected Save
+    document.getElementById('btnLoadDetected').addEventListener('click', async () => {
+      if (!detectedSavePath) return;
+      await loadSaveFromPath(detectedSavePath);
+    });
+
+    // 3. Browse / Dropzone
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    document.getElementById('btnBrowse').addEventListener('click', (e) => {
+      e.stopPropagation();
+      fileInput.click();
+    });
+    dropzone.addEventListener('click', () => fileInput.click());
+
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) {
+        await uploadSaveFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', async () => {
+      if (fileInput.files.length > 0) {
+        await uploadSaveFile(fileInput.files[0]);
+      }
+    });
+
+    async function loadSaveFromPath(path) {
+      showToast('Đang đọc file save...');
+      try {
+        const res = await fetch('/api/load-save', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({save_path: path})
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        renderProfiles(data.profiles);
+      } catch (err) {
+        showToast('Lỗi: ' + err.message);
+      }
+    }
+
+    async function uploadSaveFile(file) {
+      showToast('Đang tải lên file save...');
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/upload-save', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        renderProfiles(data.profiles);
+      } catch (err) {
+        showToast('Lỗi: ' + err.message);
+      }
+    }
+
+    // 4. Render Character Profiles
+    function renderProfiles(profiles) {
+      loadedProfiles = profiles;
+      const container = document.getElementById('slotsContainer');
+      container.innerHTML = '';
+
+      let firstActive = null;
+
+      profiles.forEach(p => {
+        if (!p.is_active) return;
+        if (firstActive === null) firstActive = p.slot_index;
+
+        const card = document.createElement('div');
+        card.className = `slot-card ${p.slot_index === selectedSlotIndex ? 'active' : ''}`;
+        card.innerHTML = `
+          <div class="slot-name">Slot ${p.slot_index + 1}: ${p.name}</div>
+          <div class="slot-details">
+            <span class="slot-badge lvl">Level ${p.level}</span>
+            <span class="slot-badge">⏱️ ${p.playtime_str}</span>
+            <span class="slot-badge">💀 ${p.deaths} deaths</span>
+          </div>
+        `;
+        card.addEventListener('click', () => {
+          document.querySelectorAll('.slot-card').forEach(c => c.classList.remove('active'));
+          card.classList.add('active');
+          selectedSlotIndex = p.slot_index;
+        });
+        container.appendChild(card);
+      });
+
+      if (firstActive !== null) {
+        selectedSlotIndex = firstActive;
+        const cards = container.querySelectorAll('.slot-card');
+        if (cards.length > 0) cards[0].classList.add('active');
+      }
+
+      document.getElementById('slotCardSection').style.display = 'flex';
+      document.getElementById('optionsSection').style.display = 'flex';
+      showToast('Đã nạp nhân vật thành công!');
+    }
+
+    // 5. Map Selection
+    document.querySelectorAll('.map-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.map-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedMapId = parseInt(btn.dataset.map);
+      });
+    });
+
+    // 6. Execute Sync
+    document.getElementById('btnExecuteSync').addEventListener('click', async () => {
+      showToast('Đang phân tích và đối soát dữ liệu...');
+      const options = {
+        sync_graces: document.getElementById('sync_graces').checked,
+        sync_bosses: document.getElementById('sync_bosses').checked,
+        sync_weapons: document.getElementById('sync_weapons').checked,
+        sync_armor: document.getElementById('sync_armor').checked,
+        sync_talismans: document.getElementById('sync_talismans').checked,
+        sync_spells: document.getElementById('sync_spells').checked,
+        sync_key_items: document.getElementById('sync_key_items').checked,
+        sync_ashes: document.getElementById('sync_ashes').checked,
+        include_storage: document.getElementById('include_storage').checked
+      };
+
+      const userId = parseInt(document.getElementById('userIdInput').value) || 7764114;
+
+      try {
+        const res = await fetch('/api/sync', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            slot_index: selectedSlotIndex,
+            map_id: selectedMapId,
+            user_id: userId,
+            options: options
+          })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        currentFmgJson = data.fmg_json;
+        renderResults(data);
+      } catch (err) {
+        showToast('Lỗi: ' + err.message);
+      }
+    });
+
+    // 7. Render Results
+    function renderResults(data) {
+      const section = document.getElementById('resultsSection');
+      section.style.display = 'flex';
+      document.getElementById('totalLocationsNum').textContent = data.total_locations_found;
+      document.getElementById('resultCharSummary').textContent = 
+        `Nhân vật: ${data.character_name} (Level ${data.level}) • Bản đồ: ${data.map_name}`;
+
+      const grid = document.getElementById('breakdownGrid');
+      grid.innerHTML = '';
+
+      const labels = {
+        graces: '🌟 Điểm Ân Điển',
+        bosses: '⚔️ Trùm & Kẻ Địch',
+        weapons: '🗡️ Vũ Khí & Khiên',
+        armor: '🛡️ Áo Giáp & Nón',
+        talismans: '💍 Bùa Hộ Mệnh',
+        spells: '✨ Phép Thuật',
+        key_items: '📜 Sách & Bản Đồ',
+        ashes: '🌪️ Tro Chiến Tranh'
+      };
+
+      for (const [key, label] of Object.entries(labels)) {
+        const item = data.breakdown[key];
+        if (item && item.count > 0) {
+          const card = document.createElement('div');
+          card.className = 'breakdown-card';
+          card.innerHTML = `
+            <span class="breakdown-card-title">${label}</span>
+            <span class="breakdown-card-num">${item.count}</span>
+          `;
+          grid.appendChild(card);
+        }
+      }
+
+      section.scrollIntoView({ behavior: 'smooth' });
+      showToast('Đã quét xong ' + data.total_locations_found + ' vị trí!');
+    }
+
+    // 8. Download JSON
+    document.getElementById('btnDownloadJson').addEventListener('click', () => {
+      if (!currentFmgJson) return;
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentFmgJson, null, 2));
+      const downloadAnchor = document.createElement('a');
+      const filename = `fmg_game_111_map_${selectedMapId}_user_${currentFmgJson.userId}_sync.json`;
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", filename);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast('Đã tải xuống file ' + filename);
+    });
+  </script>
+</body>
+</html>

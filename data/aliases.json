@@ -1,0 +1,26 @@
+{
+  "graces": {
+    "giants' gravepost": ["giant's gravepost"],
+    "spiritcaller cave": ["spiritcaller's cave"],
+    "bridge leading to the village": ["bridge to the village"]
+  },
+  "bosses": {
+    "valiant gargoyle": ["valiant gargoyle duo", "valiant gargoyles"],
+    "fia's champion": ["fia's champions", "fia’s champions"],
+    "abductor virgin (swinging sickle)": ["abductor virgin x2", "malfunctioning abductor virgin", "abductor virgins"],
+    "crucible knight ordovis": ["crucible knight & crucible knight ordovis", "crucible knight ordovis"],
+    "misbegotten warrior": ["crucible knight & misbegotten warrior", "leonine misbegotten"],
+    "miranda blossom": ["miranda the blighted bloom", "miranda, the blighted bloom & omenkiller"],
+    "crystalian (staff)": ["spear crystalian & staff crystalian", "putrid crystalian trio", "3x putrid crystalian"],
+    "kindred of rot": ["2x kindred rot"],
+    "beastman of farum azula (cleaver)": ["beastman of farum azula", "beastman of farum azula x2"],
+    "putrid crystalian (spear)": ["spear crystalian & staff crystalian", "3x putrid crystalian"],
+    "cleanrot knight (spear)": ["cleanrot knight (spear) & cleanrot knight (sickle)", "cleanrot knight duo"],
+    "fell twin": ["fell twin x 2", "fell twins"],
+    "erdtree burial watchdog (sword)": ["erdtree burial watchdog", "erdtree burial watchdog duo"],
+    "radahn, consort of miquella": ["promised consort radahn"],
+    "base serpent messmer": ["messmer the impaler"],
+    "midra, lord of frenzied flame": ["midra, lord of the frenzied flame"],
+    "count ymir, mother of fingers": ["count ymir, mother of fingers", "metyr, mother of fingers"]
+  }
+}

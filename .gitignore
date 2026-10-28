@@ -1,0 +1,34 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Elden Ring Save Files (contains personal data)
+*.sl2
+*.sl2.bak
+
+# Generated exports and test files
+*.json
+!data/*.json
+!package*.json
+!manifest*.json
+
+# OS artifacts
+Thumbs.db
+[Dd]esktop.ini
+.DS_Store
+
+# IDE configs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Releases
+*.zip
+*.tar.gz
