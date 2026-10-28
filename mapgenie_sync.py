@@ -432,6 +432,27 @@ class MapGenieSyncEngine:
                 matched_location_ids.add(166509)
                 breakdown['talismans']['count'] += 1
 
+            # J. Additional 1-time Bosses verified by defeat flags or unique drops:
+            # 164457: Demi-Human Chief x2 (Coastal Cave)
+            if (is_flag_active(31150800) or 'tailoring tools' in player_items) and 164457 in locs_by_id:
+                matched_location_ids.add(164457)
+                breakdown['bosses']['count'] += 1
+
+            # 165949: Erdtree Burial Watchdog (Impaler's Catacombs)
+            if (is_flag_active(30020800) or 'demi-human ashes' in player_items) and 165949 in locs_by_id:
+                matched_location_ids.add(165949)
+                breakdown['bosses']['count'] += 1
+
+            # 166738: Mad Pumpkin Heads (Hammer & Flail) (Caelem Ruins)
+            if (is_flag_active(1048400800) or 'visage shield' in player_items) and 166738 in locs_by_id:
+                matched_location_ids.add(166738)
+                breakdown['bosses']['count'] += 1
+
+            # 164659: Night's Cavalry (Weeping Peninsula)
+            if (is_flag_active(1039430310) or is_flag_active(1039430800) or 'nightrider flail' in player_items) and 164659 in locs_by_id:
+                matched_location_ids.add(164659)
+                breakdown['bosses']['count'] += 1
+
         # 5. SMART MERGE WITH EXISTING FMG EXPORT & DIFF LOG
         diff_log = None
         if existing_fmg_data:
