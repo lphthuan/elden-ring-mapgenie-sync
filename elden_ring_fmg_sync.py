@@ -27,7 +27,7 @@ def main():
     parser.add_argument("--map", type=int, default=413, choices=[413, 638], help="Map ID: 413 (The Lands Between) hoặc 638 (Realm of Shadow)")
     parser.add_argument("--user", type=int, default=7764114, help="User ID MapGenie (mặc định 7764114)")
     parser.add_argument("--merge", type=str, default=None, help="File FMG JSON cũ để gộp dữ liệu")
-    parser.add_argument("--merge-mode", type=str, choices=["additive", "override"], default="additive", help="Chế độ gộp: 'additive' (gộp bổ sung) hoặc 'override' (ghi đè 100% Grace & Boss)")
+    parser.add_argument("--merge-mode", type=str, choices=["additive", "override"], default="additive", help="Chế độ gộp: 'additive' (gộp bổ sung) hoặc 'override' (ghi đè 100%% Grace & Boss)")
     parser.add_argument("--output", type=str, default=None, help="File JSON xuất ra")
     parser.add_argument("--no-materials", action="store_true", help="Vô hiệu hóa quét vật liệu (Materials: đá rèn, hoa hầm mộ, thảo mộc hiếm)")
     parser.add_argument("--no-consumables", action="store_true", help="Vô hiệu hóa quét vật phẩm dùng một lần (Consumables: Runes, Rune Arcs, Ammunition)")
